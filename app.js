@@ -54,7 +54,7 @@ const PROGRAMME = [
    Section 2: Storage
    ============================================================ */
 
-const KEYS = { logs: 'lt_logs', settings: 'lt_settings', draft: 'lt_draft' };
+const KEYS = { logs: 'lt_logs', settings: 'lt_settings', draft: 'lt_draft', prs: 'lt_prs' };
 
 const store = {
   get(k)      { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -64,11 +64,13 @@ const store = {
 
 function getLogs()         { return store.get(KEYS.logs)     || []; }
 function saveLogs(a)       { store.set(KEYS.logs, a); }
-function getSettings()     { return Object.assign({ unit: 'kg' }, store.get(KEYS.settings) || {}); }
+function getSettings()     { return Object.assign({ unit: 'kg', restDuration: 120 }, store.get(KEYS.settings) || {}); }
 function saveSettings(o)   { store.set(KEYS.settings, o); }
 function getDraft()        { return store.get(KEYS.draft); }
 function saveDraft(d)      { store.set(KEYS.draft, d); }
 function clearDraft()      { store.remove(KEYS.draft); }
+function getPRs()          { return store.get(KEYS.prs) || {}; }
+function savePRs(o)        { store.set(KEYS.prs, o); }
 
 /* ============================================================
    Section 3: Progression Logic
@@ -99,7 +101,6 @@ function getSuggestedWeight(exerciseId) {
 
   const lastWeight = lastSets[lastSets.length - 1].weight;
 
-  // For dist-type (farmer's carry) always progress if all sets completed
   const allHitMax = ex.repsUnit === 'dist'
     ? lastSets.length >= ex.sets
     : (lastSets.length >= ex.sets && lastSets.every(s => s.reps >= ex.repsMax));
@@ -118,20 +119,217 @@ function getLastSetReps(exerciseId, setIndex) {
 }
 
 /* ============================================================
-   Section 4: State
+   Section 4: PR System
+   ============================================================ */
+
+function getExercisePR(exId) {
+  return getPRs()[exId]?.weight ?? null;
+}
+
+function checkAndRecordPR(exId, weight) {
+  const ex = findExercise(exId);
+  if (!ex || !ex.trackWeight || !weight) return false;
+  const prs = getPRs();
+  const current = prs[exId]?.weight ?? null;
+  if (current === null || weight > current) {
+    prs[exId] = { weight, date: new Date().toISOString() };
+    savePRs(prs);
+    showPRToast(ex.name, weight);
+    return true;
+  }
+  return false;
+}
+
+function showPRToast(name, weight) {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast pr';
+  t.innerHTML = `<div class="toast-dot"></div>PR — ${name} · ${weight}${getSettings().unit}`;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 280); }, 4000);
+}
+
+function rebuildPRsFromLogs() {
+  const prs = {};
+  const logs = getLogs().sort((a, b) => new Date(a.date) - new Date(b.date));
+  for (const log of logs) {
+    for (const s of log.sets) {
+      const ex = findExercise(s.exerciseId);
+      if (!ex || !ex.trackWeight || !s.weight) continue;
+      if (!prs[s.exerciseId] || s.weight > prs[s.exerciseId].weight) {
+        prs[s.exerciseId] = { weight: s.weight, date: log.date };
+      }
+    }
+  }
+  savePRs(prs);
+}
+
+/* ============================================================
+   Section 5: Rest Timer
+   ============================================================ */
+
+const timer = { id: null, remaining: 0, targetExId: null };
+
+function startRestTimer(exId) {
+  clearRestTimer();
+  const duration = getSettings().restDuration;
+  timer.remaining = duration;
+  timer.targetExId = exId;
+
+  const panel = document.getElementById(`ex-panel-${exId}`);
+  if (!panel) return;
+  const setsArea = panel.querySelector('.sets-area');
+  if (!setsArea) return;
+
+  const pill = document.createElement('div');
+  pill.id = 'rest-timer-pill';
+  pill.className = 'rest-timer-pill';
+  const circumference = 75.4;
+  pill.innerHTML = `
+    <svg class="timer-ring" width="32" height="32" viewBox="0 0 32 32">
+      <circle class="timer-ring-track" cx="16" cy="16" r="12" />
+      <circle class="timer-ring-progress" id="timer-ring-progress" cx="16" cy="16" r="12"
+        stroke-dasharray="${circumference}" stroke-dashoffset="0" />
+    </svg>
+    <span class="timer-seconds" id="timer-seconds">${duration}</span>
+    <span class="timer-label">rest</span>
+    <button class="timer-dismiss" data-action="dismiss-timer">×</button>`;
+  setsArea.insertBefore(pill, setsArea.firstChild);
+
+  timer.id = setInterval(tickRestTimer, 1000);
+}
+
+function tickRestTimer() {
+  timer.remaining--;
+  const secEl = document.getElementById('timer-seconds');
+  const ringEl = document.getElementById('timer-ring-progress');
+  const pill   = document.getElementById('rest-timer-pill');
+
+  if (!secEl || !pill) { clearInterval(timer.id); timer.id = null; return; }
+
+  if (timer.remaining <= 0) {
+    clearInterval(timer.id); timer.id = null;
+    secEl.textContent = '0';
+    if (ringEl) ringEl.style.strokeDashoffset = '75.4';
+    pill.classList.add('timer-pulse');
+    setTimeout(() => { pill.remove(); }, 2000);
+    return;
+  }
+
+  secEl.textContent = timer.remaining;
+  if (ringEl) {
+    const duration = getSettings().restDuration;
+    const offset = 75.4 * (1 - timer.remaining / duration);
+    ringEl.style.strokeDashoffset = offset;
+  }
+}
+
+function clearRestTimer() {
+  if (timer.id) { clearInterval(timer.id); timer.id = null; }
+  document.getElementById('rest-timer-pill')?.remove();
+  timer.remaining = 0;
+  timer.targetExId = null;
+}
+
+/* ============================================================
+   Section 6: Plate Calculator
+   ============================================================ */
+
+const BARBELL_KG       = 20;
+const PLATE_SIZES_KG   = [20, 15, 10, 5, 2.5, 1.25];
+const BARBELL_LBS      = 45;
+const PLATE_SIZES_LBS  = [45, 35, 25, 10, 5, 2.5];
+const BARBELL_REGEX    = /barbell|deadlift|squat|bench press/i;
+
+function isBarbellExercise(name) { return BARBELL_REGEX.test(name); }
+
+function calcPlates(totalWeight, unit) {
+  const barWeight  = unit === 'lbs' ? BARBELL_LBS : BARBELL_KG;
+  const plateSizes = unit === 'lbs' ? PLATE_SIZES_LBS : PLATE_SIZES_KG;
+  let remaining = (totalWeight - barWeight) / 2;
+  if (remaining < 0) return null;
+  const result = [];
+  for (const size of plateSizes) {
+    const count = Math.floor(remaining / size + 0.001);
+    if (count > 0) {
+      result.push({ plate: size, count });
+      remaining = Math.round((remaining - count * size) * 1000) / 1000;
+    }
+  }
+  if (remaining > 0.01) return null;
+  return result;
+}
+
+function openPlateCalculator(exId) {
+  const ex = findExercise(exId);
+  if (!ex) return;
+  const weight = state.draft?.exercises[exId]?.weight ?? 0;
+  state.plateCalcWeight = weight;
+  state.plateCalcExId   = exId;
+  const unit = getSettings().unit;
+  openSheet({
+    title: `Plate Calculator`,
+    html: `
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:4px;">${ex.name}</div>
+      <div class="plate-calc-controls">
+        <button class="step-btn" style="width:48px;height:48px;" data-action="plate-minus">−</button>
+        <div class="plate-target-weight" id="plate-target-weight">${weight}${unit}</div>
+        <button class="step-btn" style="width:48px;height:48px;" data-action="plate-plus">+</button>
+      </div>
+      <div id="plate-calc-body">${renderPlateCalcContent(weight, unit)}</div>
+      <button class="btn-primary-full" style="margin-top:16px;" data-action="use-plate-weight">Use this weight</button>`,
+    onOpen: () => {},
+  });
+}
+
+function renderPlateCalcContent(weight, unit) {
+  const barWeight = unit === 'lbs' ? BARBELL_LBS : BARBELL_KG;
+  const plates = calcPlates(weight, unit);
+  if (weight < barWeight) {
+    return `<div style="color:var(--text-3);font-size:14px;padding:12px 0;">Weight is below bar weight (${barWeight}${unit}).</div>`;
+  }
+  if (!plates) {
+    return `<div style="color:var(--text-3);font-size:14px;padding:12px 0;">Can't make this weight with standard plates.</div>`;
+  }
+  if (plates.length === 0) {
+    return `<div style="font-size:14px;padding:12px 0;color:var(--text-2);">Bar only — ${barWeight}${unit}</div>`;
+  }
+  const rows = plates.map(p =>
+    `<div class="plate-breakdown-row">
+      <span>${p.plate}${unit} plate</span>
+      <span style="font-weight:700;">× ${p.count} per side</span>
+    </div>`
+  ).join('');
+  return `<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">Bar: ${barWeight}${unit} + plates each side:</div>${rows}`;
+}
+
+/* ============================================================
+   Section 7: State
    ============================================================ */
 
 const state = {
   view: 'workouts',
-  draft: null,       // { day, date, exercises: { [id]: { weight, sets:[null|number] } } }
-  expandedLog: null, // history expand
+  draft: null,
+  expandedLog: null,
+  sessionPRs: [],
+  chartInstance: null,
+  plateCalcWeight: 0,
+  plateCalcExId: null,
+  completionTimeout: null,
 };
 
 /* ============================================================
-   Section 5: Router & Navigation
+   Section 8: Router & Navigation
    ============================================================ */
 
 function navigate(view, dayNum) {
+  // Cancel completion screen if navigating away early
+  if (state.completionTimeout) {
+    clearTimeout(state.completionTimeout);
+    state.completionTimeout = null;
+    document.getElementById('completion-overlay')?.remove();
+  }
+
   state.view = view;
 
   const topbar = document.getElementById('workout-topbar');
@@ -158,7 +356,7 @@ function navigate(view, dayNum) {
 }
 
 /* ============================================================
-   Section 6: Home View
+   Section 9: Home View
    ============================================================ */
 
 function renderHome() {
@@ -195,12 +393,35 @@ function renderHome() {
   `;
 }
 
+function getLastWeightsForDay(day, lastLog) {
+  if (!lastLog) return '';
+  const tracked = day.exercises.filter(e => e.trackWeight).slice(0, 3);
+  const items = tracked.map(ex => {
+    const s = lastLog.sets.filter(s => s.exerciseId === ex.id);
+    if (!s.length) return null;
+    const w = s[s.length - 1].weight;
+    const shortName = ex.name.split(' ').slice(0, 2).join(' ');
+    return `<span class="last-weights-item">${shortName} · ${w}${getSettings().unit}</span>`;
+  }).filter(Boolean);
+  if (!items.length) return '';
+  return `<div class="last-weights-row">${items.join('')}</div>`;
+}
+
+function checkLogForPRBadge(log) {
+  if (!log) return false;
+  const prs = getPRs();
+  const logDay = new Date(log.date).toDateString();
+  return Object.values(prs).some(pr => new Date(pr.date).toDateString() === logDay);
+}
+
 function buildDayCard(day) {
-  const lastLog = getLastLogForDay(day.day);
+  const lastLog    = getLastLogForDay(day.day);
   const daysAgoText = lastLog ? daysAgoLabel(lastLog.date) : null;
   const isRecent   = lastLog && daysSince(lastLog.date) <= 7;
-  const preview = day.exercises.slice(0, 3).map(e => e.name).join(', ')
+  const preview    = day.exercises.slice(0, 3).map(e => e.name).join(', ')
     + (day.exercises.length > 3 ? ` +${day.exercises.length - 3} more` : '');
+  const hasPR      = checkLogForPRBadge(lastLog);
+  const weightsHTML = getLastWeightsForDay(day, lastLog);
 
   return `
     <div class="day-card" data-action="start-day" data-day="${day.day}">
@@ -214,8 +435,12 @@ function buildDayCard(day) {
         </div>
       </div>
       <div class="day-exercises-preview">${preview}</div>
+      ${weightsHTML}
       <div class="day-card-footer">
-        <span class="day-count">${day.exercises.length} exercises</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="day-count">${day.exercises.length} exercises</span>
+          ${hasPR ? '<span class="pr-badge">PR</span>' : ''}
+        </div>
         <div class="last-done">
           <div class="last-done-dot${isRecent ? ' recent' : ''}"></div>
           <span>${daysAgoText || 'Never done'}</span>
@@ -241,7 +466,7 @@ function daysAgoLabel(iso) {
 }
 
 /* ============================================================
-   Section 7: Workout View
+   Section 10: Workout View
    ============================================================ */
 
 function initDraft(dayNum) {
@@ -255,7 +480,8 @@ function initDraft(dayNum) {
       sets: Array(ex.sets).fill(null),
     };
   });
-  state.draft = { day: dayNum, date: new Date().toISOString(), exercises };
+  state.draft = { day: dayNum, date: new Date().toISOString(), startedAt: new Date().toISOString(), exercises };
+  state.sessionPRs = [];
   saveDraft(state.draft);
 }
 
@@ -292,6 +518,7 @@ function buildExercisePanel(ex) {
   }
 
   const currentWeight = draftEx?.weight ?? (suggestion?.weight ?? null);
+  const isBarbell = isBarbellExercise(ex.name);
 
   const weightRow = ex.trackWeight ? `
     <div class="weight-row">
@@ -306,10 +533,14 @@ function buildExercisePanel(ex) {
       </div>
       <span class="weight-unit">${getSettings().unit}</span>
       ${hintHTML}
+      ${isBarbell ? `<button class="plate-calc-btn" data-action="open-plate-calc" data-ex-id="${ex.id}" title="Plate calculator">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="2" y1="12" x2="22" y2="12"/><rect x="7" y="9" width="2" height="6" rx="1"/><rect x="15" y="9" width="2" height="6" rx="1"/><rect x="4" y="10" width="3" height="4" rx="1"/><rect x="17" y="10" width="3" height="4" rx="1"/>
+        </svg>
+      </button>` : ''}
     </div>` : '';
 
   const setRows = Array.from({ length: ex.sets }, (_, i) => buildSetRow(ex, i, draftEx)).join('');
-
   const repLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
 
   return `
@@ -331,7 +562,6 @@ function buildSetRow(ex, i, draftEx) {
   const logged = draftEx?.sets[i] ?? null;
 
   if (logged !== null) {
-    // Done state
     const w = draftEx.weight;
     const weightText = ex.trackWeight && w !== null ? ` · ${w}${getSettings().unit}` : '';
     const repsLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
@@ -349,9 +579,7 @@ function buildSetRow(ex, i, draftEx) {
       </div>`;
   }
 
-  // Pending state
   if (ex.repsUnit === 'dist') {
-    // Farmer's carry: just a Done button
     return `
       <div class="set-row" data-ex-id="${ex.id}" data-set-idx="${i}">
         <span class="set-num">Set ${i + 1}</span>
@@ -387,7 +615,6 @@ function refreshExercisePanel(exId) {
   const tmp = document.createElement('div');
   tmp.innerHTML = newHTML;
   panel.replaceWith(tmp.firstElementChild);
-  // Re-attach weight input listener
   const newInput = document.querySelector(`[data-weight-input="${exId}"]`);
   if (newInput) attachWeightInputListener(newInput, exId);
 }
@@ -415,7 +642,6 @@ function logSet(exId, setIdx) {
     reps = parseInt(input?.value) || ex.repsMin;
   }
 
-  // Capture weight from DOM in case user typed without blur
   const wInput = document.querySelector(`[data-weight-input="${exId}"]`);
   if (wInput && wInput.value !== '') {
     const v = parseFloat(wInput.value);
@@ -426,6 +652,15 @@ function logSet(exId, setIdx) {
   saveDraft(state.draft);
   refreshExercisePanel(exId);
   updateSaveButton();
+
+  // Start rest timer after panel refresh (inserts into fresh panel)
+  startRestTimer(exId);
+
+  // Check PR
+  const weight = state.draft.exercises[exId].weight;
+  if (checkAndRecordPR(exId, weight)) {
+    state.sessionPRs.push({ exerciseName: ex.name, weight });
+  }
 }
 
 function unlogSet(exId, setIdx) {
@@ -476,19 +711,92 @@ function saveWorkout() {
     id: 'log_' + Date.now(),
     day: state.draft.day,
     date: state.draft.date,
+    startedAt: state.draft.startedAt,
     sets,
   };
   const logs = getLogs();
   logs.push(log);
   saveLogs(logs);
   clearDraft();
+
+  const prsHit = [...state.sessionPRs];
   state.draft = null;
-  showToast('Workout saved!', 'success');
-  navigate('workouts');
+  state.sessionPRs = [];
+  clearRestTimer();
+
+  showCompletionScreen(log, prsHit);
 }
 
 /* ============================================================
-   Section 8: History View
+   Section 11: Completion Screen
+   ============================================================ */
+
+function showCompletionScreen(log, prsHit) {
+  const day      = findDay(log.day);
+  const dayName  = day ? day.name : `Day ${log.day}`;
+  const totalSets = log.sets.length;
+  const totalVol  = log.sets.reduce((n, s) => n + s.weight * (s.reps === 1 ? 0 : s.reps), 0);
+  const duration  = log.startedAt
+    ? Math.max(1, Math.round((new Date(log.date) - new Date(log.startedAt)) / 60000))
+    : '—';
+  const volStr    = totalVol > 0 ? totalVol.toLocaleString() : '—';
+  const dateStr   = new Date(log.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+  const prsHTML = prsHit.length ? `
+    <div class="completion-prs">
+      <div class="completion-prs-title">Personal Records</div>
+      ${prsHit.map(pr => `<div class="completion-pr-item">↑ ${pr.exerciseName} — ${pr.weight}${getSettings().unit}</div>`).join('')}
+    </div>` : '';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'completion-overlay';
+  overlay.innerHTML = `
+    <div class="completion-icon">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="completion-title">${dayName}</div>
+    <div class="completion-date">${dateStr}</div>
+    <div class="completion-stats">
+      <div class="completion-stat">
+        <div class="completion-stat-val">${totalSets}</div>
+        <div class="completion-stat-label">Sets</div>
+      </div>
+      <div class="completion-stat">
+        <div class="completion-stat-val">${volStr}</div>
+        <div class="completion-stat-label">Volume</div>
+      </div>
+      <div class="completion-stat">
+        <div class="completion-stat-val">${duration}m</div>
+        <div class="completion-stat-label">Duration</div>
+      </div>
+    </div>
+    ${prsHTML}
+    <button class="completion-done-btn" data-action="completion-done">Done</button>`;
+
+  document.getElementById('app').appendChild(overlay);
+
+  // Hide the workout topbar
+  document.getElementById('workout-topbar').classList.add('hidden');
+
+  state.completionTimeout = setTimeout(() => dismissCompletionScreen(), 6000);
+}
+
+function dismissCompletionScreen() {
+  if (state.completionTimeout) {
+    clearTimeout(state.completionTimeout);
+    state.completionTimeout = null;
+  }
+  const overlay = document.getElementById('completion-overlay');
+  if (!overlay) { navigate('workouts'); return; }
+  overlay.classList.add('out');
+  setTimeout(() => {
+    overlay.remove();
+    navigate('workouts');
+  }, 300);
+}
+
+/* ============================================================
+   Section 12: History View
    ============================================================ */
 
 function renderHistory() {
@@ -532,8 +840,12 @@ function buildHistoryCard(log) {
           const wText  = hasW && s.weight ? ` @ ${s.weight}${getSettings().unit}` : '';
           return `<span class="history-set-pill">${rText}${wText}</span>`;
         }).join('');
+        const chartBtn = ex && ex.trackWeight ? `
+          <button class="chart-icon-btn" data-action="show-chart" data-ex-id="${eid}" title="Progress chart">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </button>` : '';
         return `<div class="history-ex-block">
-          <div class="history-ex-name">${ex ? ex.name : eid} ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscle}</span>` : ''}</div>
+          <div class="history-ex-name">${ex ? ex.name : eid} ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscle}</span>` : ''}${chartBtn}</div>
           <div class="history-sets-row">${pills}</div>
         </div>`;
       }).join('')}
@@ -563,12 +875,119 @@ function formatDate(iso) {
 }
 
 /* ============================================================
-   Section 9: Settings View
+   Section 13: Progress Charts
+   ============================================================ */
+
+function getExerciseChartData(exId) {
+  const unit = getSettings().unit;
+  const logs = getLogs()
+    .filter(l => l.sets.some(s => s.exerciseId === exId))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const labels  = [];
+  const weights = [];
+  let prIndex   = -1;
+  let prWeight  = 0;
+
+  for (const log of logs) {
+    const exSets = log.sets.filter(s => s.exerciseId === exId);
+    if (!exSets.length) continue;
+    const maxW = Math.max(...exSets.map(s => s.weight || 0));
+    if (maxW <= 0) continue;
+    labels.push(new Date(log.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+    weights.push(maxW);
+    if (maxW > prWeight) { prWeight = maxW; prIndex = weights.length - 1; }
+  }
+
+  return { labels, weights, prIndex, unit };
+}
+
+function renderProgressChart(exId) {
+  const ex = findExercise(exId);
+  if (!ex) return;
+  const data = getExerciseChartData(exId);
+
+  if (data.labels.length < 2) {
+    openSheet({
+      title: ex.name,
+      html: `<div style="color:var(--text-2);font-size:14px;padding:16px 0;line-height:1.7;">
+        Log at least 2 sessions to see your progress trend.
+      </div>`,
+    });
+    return;
+  }
+
+  openSheet({
+    title: ex.name,
+    html: `<div style="position:relative;height:220px;margin:8px 0 4px;"><canvas id="chart-canvas"></canvas></div>
+      <div style="font-size:12px;color:var(--text-3);text-align:center;margin-top:4px;">Weight over time (${data.unit})</div>`,
+    onOpen: () => drawChart(exId, data),
+  });
+}
+
+function drawChart(exId, data) {
+  if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
+  const canvas = document.getElementById('chart-canvas');
+  if (!canvas) return;
+
+  const pointColors = data.weights.map((_, i) =>
+    i === data.prIndex ? '#22c55e' : 'rgba(34,197,94,0.5)'
+  );
+  const pointRadius = data.weights.map((_, i) => i === data.prIndex ? 6 : 4);
+
+  state.chartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{
+        data: data.weights,
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34,197,94,0.08)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: pointColors,
+        pointRadius: pointRadius,
+        pointHoverRadius: 7,
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.parsed.y} ${data.unit}`,
+          },
+          backgroundColor: '#1a1a1a',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 1,
+          titleColor: '#888',
+          bodyColor: '#f2f2f2',
+        },
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#555', font: { size: 11 } },
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          ticks: { color: '#555', font: { size: 11 } },
+        },
+      },
+    },
+  });
+}
+
+/* ============================================================
+   Section 14: Settings View
    ============================================================ */
 
 function renderSettings() {
   const mc  = document.getElementById('main-content');
-  const { unit } = getSettings();
+  const { unit, restDuration } = getSettings();
 
   mc.innerHTML = `
     <div class="page-header"><div class="page-title">Settings</div></div>
@@ -582,6 +1001,14 @@ function renderSettings() {
             <div class="segmented">
               <button class="seg-btn${unit === 'kg' ? ' active' : ''}" data-action="set-unit" data-unit="kg">kg</button>
               <button class="seg-btn${unit === 'lbs' ? ' active' : ''}" data-action="set-unit" data-unit="lbs">lbs</button>
+            </div>
+          </div>
+          <div class="settings-row" style="cursor:default;">
+            <span class="settings-row-label">Rest Timer</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button class="step-btn" style="width:36px;height:36px;" data-action="rest-minus">−</button>
+              <span style="font-size:15px;font-weight:700;min-width:44px;text-align:center;">${restDuration}s</span>
+              <button class="step-btn" style="width:36px;height:36px;" data-action="rest-plus">+</button>
             </div>
           </div>
         </div>
@@ -617,7 +1044,7 @@ function renderSettings() {
         <div class="settings-card">
           <div class="settings-row" style="cursor:default;">
             <span class="settings-row-label">Liftr</span>
-            <span style="font-size:13px;color:var(--text-2);">v2.0.0</span>
+            <span style="font-size:13px;color:var(--text-2);">v3.0.0</span>
           </div>
         </div>
       </div>
@@ -661,6 +1088,7 @@ function handleImport(file) {
           document.getElementById('confirm-import-btn').addEventListener('click', () => {
             saveLogs(data.logs);
             if (data.settings) saveSettings(data.settings);
+            rebuildPRsFromLogs();
             closeSheet();
             showToast('Data imported', 'success');
             renderSettings();
@@ -695,7 +1123,7 @@ function handleClearData() {
         btn.style.opacity = ok ? '1' : '0.4';
       });
       btn.addEventListener('click', () => {
-        [KEYS.logs, KEYS.settings, KEYS.draft].forEach(k => store.remove(k));
+        [KEYS.logs, KEYS.settings, KEYS.draft, KEYS.prs].forEach(k => store.remove(k));
         state.draft = null;
         closeSheet();
         showToast('All data cleared', 'info');
@@ -706,7 +1134,7 @@ function handleClearData() {
 }
 
 /* ============================================================
-   Section 10: Sheet System
+   Section 15: Sheet System
    ============================================================ */
 
 let _sheetConfig = null;
@@ -723,12 +1151,13 @@ function openSheet({ title, html, onOpen, onClose }) {
 
 function closeSheet() {
   document.getElementById('sheet-overlay').classList.remove('open');
+  if (state.chartInstance) { state.chartInstance.destroy(); state.chartInstance = null; }
   if (_sheetConfig?.onClose) _sheetConfig.onClose();
   _sheetConfig = null;
 }
 
 /* ============================================================
-   Section 11: Toast System
+   Section 16: Toast System
    ============================================================ */
 
 function showToast(msg, type = 'info') {
@@ -741,30 +1170,26 @@ function showToast(msg, type = 'info') {
 }
 
 /* ============================================================
-   Section 12: Event Delegation
+   Section 17: Event Delegation
    ============================================================ */
 
 function initEvents() {
-  // Main content: clicks
   document.getElementById('main-content').addEventListener('click', handleClick);
 
-  // Sheet overlay: clicks
   document.getElementById('sheet-overlay').addEventListener('click', e => {
     if (e.target === document.getElementById('sheet-overlay')) closeSheet();
     const action = e.target.closest('[data-action]')?.dataset.action;
-    if (action === 'close-sheet') closeSheet();
+    if (action === 'close-sheet') { closeSheet(); return; }
+    if (action) handleClick(e);
   });
 
-  // Top bar save + back
   document.getElementById('workout-topbar').addEventListener('click', handleClick);
 
-  // Bottom nav
   document.getElementById('bottom-nav').addEventListener('click', e => {
     const btn = e.target.closest('[data-nav]');
     if (btn) navigate(btn.dataset.nav);
   });
 
-  // Weight inputs: update draft on change
   document.getElementById('main-content').addEventListener('change', e => {
     const inp = e.target.closest('[data-weight-input]');
     if (!inp) return;
@@ -774,6 +1199,12 @@ function initEvents() {
       state.draft.exercises[exId].weight = v;
       saveDraft(state.draft);
     }
+  });
+
+  // Completion overlay click delegation
+  document.getElementById('app').addEventListener('click', e => {
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'completion-done') dismissCompletionScreen();
   });
 }
 
@@ -809,6 +1240,7 @@ function handleClick(e) {
     case 'reps-plus':    adjustReps(exId, setIdx, +1); break;
     case 'log-set':      logSet(exId, setIdx); break;
     case 'unlog-set':    unlogSet(exId, setIdx); break;
+    case 'dismiss-timer': clearRestTimer(); break;
     case 'toggle-log': {
       const lid = target.dataset.logId;
       state.expandedLog = state.expandedLog === lid ? null : lid;
@@ -830,21 +1262,62 @@ function handleClick(e) {
       renderSettings();
       break;
     }
+    case 'rest-minus': {
+      const s = getSettings();
+      s.restDuration = Math.max(30, s.restDuration - 15);
+      saveSettings(s);
+      renderSettings();
+      break;
+    }
+    case 'rest-plus': {
+      const s = getSettings();
+      s.restDuration = Math.min(300, s.restDuration + 15);
+      saveSettings(s);
+      renderSettings();
+      break;
+    }
     case 'export-data': handleExport(); break;
     case 'import-data': document.getElementById('import-input')?.click(); break;
     case 'clear-data':  handleClearData(); break;
+    case 'show-chart':  renderProgressChart(exId); break;
+    case 'open-plate-calc': openPlateCalculator(exId); break;
+    case 'plate-minus': {
+      const unit = getSettings().unit;
+      const step = unit === 'lbs' ? 5 : 2.5;
+      state.plateCalcWeight = Math.max(0, Math.round((state.plateCalcWeight - step) * 10) / 10);
+      document.getElementById('plate-target-weight').textContent = `${state.plateCalcWeight}${unit}`;
+      document.getElementById('plate-calc-body').innerHTML = renderPlateCalcContent(state.plateCalcWeight, unit);
+      break;
+    }
+    case 'plate-plus': {
+      const unit = getSettings().unit;
+      const step = unit === 'lbs' ? 5 : 2.5;
+      state.plateCalcWeight = Math.round((state.plateCalcWeight + step) * 10) / 10;
+      document.getElementById('plate-target-weight').textContent = `${state.plateCalcWeight}${unit}`;
+      document.getElementById('plate-calc-body').innerHTML = renderPlateCalcContent(state.plateCalcWeight, unit);
+      break;
+    }
+    case 'use-plate-weight': {
+      const exId2 = state.plateCalcExId;
+      if (exId2 && state.draft?.exercises[exId2]) {
+        state.draft.exercises[exId2].weight = state.plateCalcWeight;
+        saveDraft(state.draft);
+        const wInput = document.querySelector(`[data-weight-input="${exId2}"]`);
+        if (wInput) wInput.value = state.plateCalcWeight;
+      }
+      closeSheet();
+      break;
+    }
   }
 }
 
 /* ============================================================
-   Section 13: Init
+   Section 18: Init
    ============================================================ */
 
 function init() {
-  // Restore any in-progress draft
   const savedDraft = getDraft();
   if (savedDraft) state.draft = savedDraft;
-
   initEvents();
   navigate('workouts');
 }
