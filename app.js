@@ -650,6 +650,7 @@ function logSet(exId, setIdx) {
 
   state.draft.exercises[exId].sets[setIdx] = reps;
   saveDraft(state.draft);
+  navigator.vibrate?.(30);
   refreshExercisePanel(exId);
   updateSaveButton();
 

@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "liftr",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd /Users/matthewwalmsley/liftr && python3 -m http.server ${PORT:-8082}"],
+      "port": 8082,
+      "autoPort": true
+    }
+  ]
+}
