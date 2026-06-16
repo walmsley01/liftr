@@ -172,7 +172,6 @@ html, body {
   background-clip: text;
 }
 .page-sub { font-size: 14px; color: var(--text-2); margin-top: 3px; }
-.home-logo { height: 52px; width: auto; display: block; }
 
 /* ── Resume banner ── */
 .resume-banner {
