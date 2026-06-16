@@ -384,7 +384,7 @@ function renderHome() {
 
   mc.innerHTML = `
     <div class="page-header">
-      <div class="page-title">Liftr</div>
+      <img src="logo.png" alt="Liftr" class="home-logo" />
       <div class="page-sub">Choose your workout</div>
     </div>
     ${resumeHTML}
