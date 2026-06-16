@@ -1,131 +1,120 @@
 /* ============================================================
-   Section 1: Constants & Config
+   Section 1: Programme Data
    ============================================================ */
 
-const STORAGE_KEYS = {
-  exercises: 'wt_exercises',
-  sessions: 'wt_sessions',
-  sets: 'wt_sets',
-  settings: 'wt_settings',
-  activeSession: 'wt_active_session',
-};
-
-const MUSCLE_GROUPS = ['Chest', 'Back', 'Shoulders', 'Arms', 'Legs', 'Core', 'Cardio', 'Other'];
-
-const VERSION = '1.0.0';
-
-const DEFAULT_EXERCISES = [
-  { name: 'Barbell Squat',      muscleGroup: 'Legs' },
-  { name: 'Romanian Deadlift',  muscleGroup: 'Legs' },
-  { name: 'Bench Press',        muscleGroup: 'Chest' },
-  { name: 'Incline Dumbbell Press', muscleGroup: 'Chest' },
-  { name: 'Pull Up',            muscleGroup: 'Back' },
-  { name: 'Barbell Row',        muscleGroup: 'Back' },
-  { name: 'Overhead Press',     muscleGroup: 'Shoulders' },
-  { name: 'Lateral Raise',      muscleGroup: 'Shoulders' },
-  { name: 'Bicep Curl',         muscleGroup: 'Arms' },
-  { name: 'Tricep Pushdown',    muscleGroup: 'Arms' },
-  { name: 'Cable Crunch',       muscleGroup: 'Core' },
+const PROGRAMME = [
+  {
+    day: 1, name: 'Push',
+    exercises: [
+      { id:'p1', name:'Incline dumbbell press',    sets:4, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Upper chest',          notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'p2', name:'Barbell shoulder press',    sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Front delts',           notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'p3', name:'Close-grip push-up',        sets:3, repsMin:12, repsMax:15, repsDisplay:'12–15',    muscle:'Chest / triceps',       notes:'Controlled – stop short of shoulder grind',                    increment:0,   trackWeight:false, perSide:false, repsUnit:'reps' },
+      { id:'p4', name:'Cable lateral raise',       sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20',    muscle:'Side delts',            notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'p5', name:'Tricep rope pushdown',      sets:3, repsMin:12, repsMax:15, repsDisplay:'12–15',    muscle:'Triceps',               notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'p6', name:'Overhead tricep extension', sets:2, repsMin:15, repsMax:15, repsDisplay:'15',       muscle:'Triceps long head',     notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+    ]
+  },
+  {
+    day: 2, name: 'Pull',
+    exercises: [
+      { id:'pu1', name:'Pull-ups',                    sets:4, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Lats',                  notes:'Full ROM – assisted if needed to hit reps cleanly',            increment:0,   trackWeight:false, perSide:false, repsUnit:'reps' },
+      { id:'pu2', name:'Seated cable row',             sets:4, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Mid back / rhomboids',  notes:'Neutral grip – drive elbows back – pause at contraction',      increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'pu3', name:'Meadows row',                  sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12 ea', muscle:'Lats / mid back',       notes:'Landmine unilateral – keep chest tall – avoid hip rotation',   increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
+      { id:'pu4', name:'Face pulls',                   sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20',    muscle:'Rear delts',            notes:'Rope to forehead – elbows high',                               increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'pu5', name:'Incline curl',                 sets:3, repsMin:12, repsMax:12, repsDisplay:'12',       muscle:'Biceps long head',      notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'pu6', name:'Hammer curl',                  sets:2, repsMin:12, repsMax:12, repsDisplay:'12',       muscle:'Brachialis / forearm',  notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+    ]
+  },
+  {
+    day: 3, name: 'Legs',
+    exercises: [
+      { id:'l1', name:'Hip thrust',                sets:4, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Glutes',                notes:'Load progressively – drive through heel – full hip extension at top', increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'l2', name:'Bulgarian split squat',     sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10 ea',  muscle:'Quads / glutes',        notes:'Watch right hip drop – keep pelvis level throughout',                increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
+      { id:'l3', name:'Romanian deadlift',         sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Hamstrings / glutes',   notes:'',                                                                   increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'l4', name:'Banded clamshell',          sets:3, repsMin:20, repsMax:20, repsDisplay:'20 ea',    muscle:'Glute med',             notes:'Key for hip stability on run',                                       increment:0,   trackWeight:false, perSide:true,  repsUnit:'reps' },
+      { id:'l5', name:'Nordic curl',               sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Hamstrings',            notes:'Hamstring resilience for running load',                              increment:0,   trackWeight:false, perSide:false, repsUnit:'reps' },
+      { id:'l6', name:'Single-leg calf raise',     sets:3, repsMin:15, repsMax:15, repsDisplay:'15 ea',    muscle:'Calves',                notes:'',                                                                   increment:0,   trackWeight:false, perSide:true,  repsUnit:'reps' },
+    ]
+  },
+  {
+    day: 4, name: 'Full Body',
+    exercises: [
+      { id:'fb1', name:'Conventional deadlift', sets:3, repsMin:5,  repsMax:5,  repsDisplay:'5',        muscle:'Posterior chain',       notes:'Heavy but controlled – 5 rep strength work',                  increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'fb2', name:'Barbell bench press',   sets:3, repsMin:10, repsMax:10, repsDisplay:'10',       muscle:'Chest',                 notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'fb3', name:'Seated cable row',      sets:3, repsMin:12, repsMax:12, repsDisplay:'12',       muscle:'Back',                  notes:'',                                                              increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'fb4', name:'Step-ups',              sets:3, repsMin:10, repsMax:10, repsDisplay:'10 ea',    muscle:'Quads / glutes',        notes:'Control the descent',                                          increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
+      { id:'fb5', name:'Copenhagen plank',      sets:3, repsMin:20, repsMax:30, repsDisplay:'20–30s ea',muscle:'Adductors / core',      notes:'Start with bottom knee on ground if needed',                   increment:0,   trackWeight:false, perSide:true,  repsUnit:'secs' },
+      { id:'fb6', name:'Dead bug',              sets:3, repsMin:10, repsMax:10, repsDisplay:'10 ea',    muscle:'Deep core',             notes:'Slow and controlled – no lower back arch',                     increment:0,   trackWeight:false, perSide:true,  repsUnit:'reps' },
+      { id:'fb7', name:"Farmer's carry",        sets:3, repsMin:1,  repsMax:1,  repsDisplay:'30m',      muscle:'Full body / grip',      notes:'Heavy dumbbells – tall posture',                               increment:2.5, trackWeight:true,  perSide:false, repsUnit:'dist' },
+    ]
+  },
 ];
 
 /* ============================================================
-   Section 2: Storage Layer
+   Section 2: Storage
    ============================================================ */
 
-function storageGet(key) {
-  try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
-}
-function storageSet(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
+const KEYS = { logs: 'lt_logs', settings: 'lt_settings', draft: 'lt_draft' };
 
-function getExercises()    { return storageGet(STORAGE_KEYS.exercises) || []; }
-function getSessions()     { return storageGet(STORAGE_KEYS.sessions) || []; }
-function getSets()         { return storageGet(STORAGE_KEYS.sets) || []; }
-function getSettings()     { return Object.assign({ defaultUnit: 'kg' }, storageGet(STORAGE_KEYS.settings) || {}); }
-function getActiveSessionId() { return storageGet(STORAGE_KEYS.activeSession) || null; }
+const store = {
+  get(k)      { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v)   { localStorage.setItem(k, JSON.stringify(v)); },
+  remove(k)   { localStorage.removeItem(k); },
+};
 
-function saveExercises(arr) { storageSet(STORAGE_KEYS.exercises, arr); }
-function saveSessions(arr)  { storageSet(STORAGE_KEYS.sessions, arr); }
-function saveSets(arr)      { storageSet(STORAGE_KEYS.sets, arr); }
-function saveSettings(obj)  { storageSet(STORAGE_KEYS.settings, obj); }
-function setActiveSession(id) { storageSet(STORAGE_KEYS.activeSession, id); }
-function clearActiveSession() { localStorage.removeItem(STORAGE_KEYS.activeSession); }
+function getLogs()         { return store.get(KEYS.logs)     || []; }
+function saveLogs(a)       { store.set(KEYS.logs, a); }
+function getSettings()     { return Object.assign({ unit: 'kg' }, store.get(KEYS.settings) || {}); }
+function saveSettings(o)   { store.set(KEYS.settings, o); }
+function getDraft()        { return store.get(KEYS.draft); }
+function saveDraft(d)      { store.set(KEYS.draft, d); }
+function clearDraft()      { store.remove(KEYS.draft); }
 
 /* ============================================================
-   Section 3: Data Helpers
+   Section 3: Progression Logic
    ============================================================ */
 
-function generateId(prefix) {
-  return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+function findExercise(id) {
+  for (const day of PROGRAMME)
+    for (const ex of day.exercises)
+      if (ex.id === id) return ex;
+  return null;
 }
 
-function getSessionSets(sessionId) {
-  return getSets().filter(s => s.sessionId === sessionId);
-}
-function getExerciseSets(exerciseId) {
-  return getSets().filter(s => s.exerciseId === exerciseId);
-}
-function getSessionExerciseIds(sessionId) {
-  const seen = new Set();
-  getSessionSets(sessionId).forEach(s => seen.add(s.exerciseId));
-  return [...seen];
-}
-function getLastSetForExerciseInSession(sessionId, exerciseId) {
-  const sets = getSets().filter(s => s.sessionId === sessionId && s.exerciseId === exerciseId);
-  if (!sets.length) return null;
-  return sets[sets.length - 1];
-}
-function getNextSetNumber(sessionId, exerciseId) {
-  return getSets().filter(s => s.sessionId === sessionId && s.exerciseId === exerciseId).length + 1;
-}
-function computeSessionDuration(session) {
-  const end = session.finishedAt ? new Date(session.finishedAt) : new Date();
-  const ms = end - new Date(session.startedAt);
-  return formatDuration(ms);
-}
-function computeTotalVolume(sets) {
-  return sets.reduce((sum, s) => sum + (s.weight * s.reps), 0);
-}
-function getExerciseProgressData(exerciseId) {
-  const sessions = getSessions().filter(s => s.finishedAt).sort((a, b) => new Date(a.startedAt) - new Date(b.startedAt));
-  const labels = [], data = [];
-  sessions.forEach(sess => {
-    const sets = getSets().filter(s => s.sessionId === sess.id && s.exerciseId === exerciseId);
-    if (sets.length) {
-      labels.push(formatDateShort(sess.startedAt));
-      data.push(Math.max(...sets.map(s => s.weight)));
-    }
-  });
-  return { labels, data };
+function findDay(n) { return PROGRAMME.find(d => d.day === n); }
+
+function getSuggestedWeight(exerciseId) {
+  const ex = findExercise(exerciseId);
+  if (!ex || !ex.trackWeight) return null;
+
+  const relevant = getLogs()
+    .filter(l => l.sets.some(s => s.exerciseId === exerciseId))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (!relevant.length) return { weight: null, increased: false, fromWeight: null };
+
+  const lastLog  = relevant[0];
+  const lastSets = lastLog.sets.filter(s => s.exerciseId === exerciseId);
+  if (!lastSets.length) return { weight: null, increased: false, fromWeight: null };
+
+  const lastWeight = lastSets[lastSets.length - 1].weight;
+
+  // For dist-type (farmer's carry) always progress if all sets completed
+  const allHitMax = ex.repsUnit === 'dist'
+    ? lastSets.length >= ex.sets
+    : (lastSets.length >= ex.sets && lastSets.every(s => s.reps >= ex.repsMax));
+
+  const newWeight = allHitMax ? lastWeight + ex.increment : lastWeight;
+  return { weight: newWeight, increased: allHitMax, fromWeight: lastWeight };
 }
 
-function formatDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-}
-function formatDateShort(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-function formatDuration(ms) {
-  if (ms < 0) ms = 0;
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  if (h > 0) return h + 'h ' + String(m).padStart(2, '0') + 'm';
-  return m + ':' + String(s).padStart(2, '0');
-}
-function formatTimerLive(ms) {
-  if (ms < 0) ms = 0;
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-}
-function todayLabel() {
-  return new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+function getLastSetReps(exerciseId, setIndex) {
+  const relevant = getLogs()
+    .filter(l => l.sets.some(s => s.exerciseId === exerciseId))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (!relevant.length) return null;
+  const s = relevant[0].sets.find(s => s.exerciseId === exerciseId && s.setIndex === setIndex);
+  return s ? s.reps : null;
 }
 
 /* ============================================================
@@ -133,737 +122,455 @@ function todayLabel() {
    ============================================================ */
 
 const state = {
-  activeTab: 'today',
-  activeSessionId: null,
-  timerInterval: null,
-  expandedSessionId: null,
-  exerciseFilter: 'All',
-  exerciseSearch: '',
-  confirmingFinish: false,
-  progressChart: null,
-  sheetOpen: false,
+  view: 'workouts',
+  draft: null,       // { day, date, exercises: { [id]: { weight, sets:[null|number] } } }
+  expandedLog: null, // history expand
 };
 
 /* ============================================================
-   Section 5: Navigation
+   Section 5: Router & Navigation
    ============================================================ */
 
-function switchTab(tabName) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tabName).classList.add('active');
-  document.querySelector('[data-tab="' + tabName + '"]').classList.add('active');
-  state.activeTab = tabName;
-  renderTab(tabName);
-}
+function navigate(view, dayNum) {
+  state.view = view;
 
-function renderTab(tabName) {
-  if (tabName === 'today')     renderTodayTab();
-  if (tabName === 'history')   renderHistoryTab();
-  if (tabName === 'exercises') renderExercisesTab();
-  if (tabName === 'settings')  renderSettingsTab();
-}
+  const topbar = document.getElementById('workout-topbar');
+  const nav    = document.getElementById('bottom-nav');
+  const mc     = document.getElementById('main-content');
 
-function initNavigation() {
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-  });
+  if (view === 'workout') {
+    topbar.classList.remove('hidden');
+    nav.classList.add('hidden');
+    mc.classList.add('workout-mode');
+    mc.classList.remove('normal-mode');
+    renderWorkout(dayNum);
+  } else {
+    topbar.classList.add('hidden');
+    nav.classList.remove('hidden');
+    mc.classList.remove('workout-mode');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.nav === view));
+    if (view === 'workouts') renderHome();
+    if (view === 'history')  renderHistory();
+    if (view === 'settings') renderSettings();
+  }
+
+  document.getElementById('main-content').scrollTop = 0;
 }
 
 /* ============================================================
-   Section 6: Today Tab
+   Section 6: Home View
    ============================================================ */
 
-function renderTodayTab() {
-  const el = document.getElementById('tab-today');
-  state.activeSessionId = getActiveSessionId();
-  if (state.activeSessionId) {
-    renderActiveSession(el);
-  } else {
-    renderIdleState(el);
-  }
-}
+function renderHome() {
+  const mc = document.getElementById('main-content');
+  const draft = getDraft();
 
-function renderIdleState(el) {
-  const sessions = getSessions().filter(s => s.finishedAt).sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt)).slice(0, 3);
-  el.innerHTML = `
-    <div class="idle-center">
-      <div class="idle-title">Ready to train?</div>
-      <div class="idle-date">${todayLabel()}</div>
-      <button class="btn btn-primary" id="btn-start-session" style="margin-top:12px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Start Workout
-      </button>
-    </div>
-    ${sessions.length ? `
-    <div style="padding:0 16px;">
-      <div class="settings-label" style="margin-bottom:10px;">Recent Sessions</div>
-      ${sessions.map(s => recentSessionMini(s)).join('')}
-    </div>` : ''}
-  `;
-  el.querySelector('#btn-start-session').addEventListener('click', startSession);
-}
-
-function recentSessionMini(session) {
-  const sets = getSessionSets(session.id);
-  const exIds = [...new Set(sets.map(s => s.exerciseId))];
-  return `<div class="card" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:12px 14px;">
-    <div>
-      <div style="font-weight:600;font-size:14px;">${formatDate(session.startedAt)}</div>
-      <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">${exIds.length} exercises &middot; ${sets.length} sets</div>
-    </div>
-    <div style="font-size:13px;color:var(--color-text-secondary);">${computeSessionDuration(session)}</div>
-  </div>`;
-}
-
-function renderActiveSession(el) {
-  const session = getSessions().find(s => s.id === state.activeSessionId);
-  if (!session) { clearActiveSession(); state.activeSessionId = null; renderIdleState(el); return; }
-  const exIds = getSessionExerciseIds(state.activeSessionId);
-
-  el.innerHTML = `
-    <div id="session-header">
-      <div id="session-timer">00:00</div>
-      <div id="finish-area">
-        ${state.confirmingFinish
-          ? `<div class="confirm-finish">
-               <button class="btn btn-ghost btn-sm" id="btn-cancel-finish">Cancel</button>
-               <button class="btn btn-danger btn-sm" id="btn-confirm-finish">Confirm Finish</button>
-             </div>`
-          : `<button class="btn btn-danger btn-sm" id="btn-finish">Finish</button>`
-        }
-      </div>
-    </div>
-    <div id="session-body" style="padding:14px 16px 8px;">
-      ${exIds.map(eid => renderExerciseCard(eid)).join('')}
-      <button class="btn btn-secondary btn-full" id="btn-add-exercise" style="margin-top:4px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Add Exercise
-      </button>
-    </div>
-  `;
-
-  updateTimerDisplay();
-  startTimer();
-
-  if (state.confirmingFinish) {
-    el.querySelector('#btn-cancel-finish').addEventListener('click', () => {
-      state.confirmingFinish = false;
-      renderTodayTab();
-    });
-    el.querySelector('#btn-confirm-finish').addEventListener('click', finishSession);
-  } else {
-    el.querySelector('#btn-finish').addEventListener('click', () => {
-      state.confirmingFinish = true;
-      renderTodayTab();
-    });
+  let resumeHTML = '';
+  if (draft) {
+    state.draft = draft;
+    const day = findDay(draft.day);
+    const doneCount = Object.values(draft.exercises)
+      .reduce((n, ex) => n + ex.sets.filter(s => s !== null).length, 0);
+    resumeHTML = `
+      <div class="resume-banner">
+        <div>
+          <div class="resume-banner-label">${day ? day.name : 'Workout'} in progress</div>
+          <div class="resume-banner-sub">${doneCount} set${doneCount !== 1 ? 's' : ''} logged so far</div>
+        </div>
+        <div class="resume-banner-actions">
+          <button class="btn-ghost" style="padding:8px 12px;font-size:13px;" data-action="discard-draft">Discard</button>
+          <button class="btn-primary-full" style="width:auto;padding:9px 16px;font-size:13px;" data-action="resume-draft">Resume</button>
+        </div>
+      </div>`;
   }
 
-  el.querySelector('#btn-add-exercise').addEventListener('click', openAddExerciseSheet);
-
-  exIds.forEach(eid => {
-    const logBtn = el.querySelector(`[data-log-exercise="${eid}"]`);
-    if (logBtn) logBtn.addEventListener('click', () => logSet(eid));
-
-    const wMinus = el.querySelector(`[data-weight-minus="${eid}"]`);
-    const wPlus  = el.querySelector(`[data-weight-plus="${eid}"]`);
-    const rMinus = el.querySelector(`[data-reps-minus="${eid}"]`);
-    const rPlus  = el.querySelector(`[data-reps-plus="${eid}"]`);
-
-    if (wMinus) wMinus.addEventListener('click', () => stepField(el.querySelector(`[data-weight-input="${eid}"]`), -stepWeight(), 0, 999));
-    if (wPlus)  wPlus.addEventListener('click',  () => stepField(el.querySelector(`[data-weight-input="${eid}"]`), +stepWeight(), 0, 999));
-    if (rMinus) rMinus.addEventListener('click', () => stepField(el.querySelector(`[data-reps-input="${eid}"]`), -1, 1, 100));
-    if (rPlus)  rPlus.addEventListener('click',  () => stepField(el.querySelector(`[data-reps-input="${eid}"]`), +1, 1, 100));
-  });
+  mc.innerHTML = `
+    <div class="page-header">
+      <div class="page-title">Liftr</div>
+      <div class="page-sub">Choose your workout</div>
+    </div>
+    ${resumeHTML}
+    ${PROGRAMME.map(day => buildDayCard(day)).join('')}
+    <div style="height:8px;"></div>
+  `;
 }
 
-function renderExerciseCard(exerciseId) {
-  const exercise = getExercises().find(e => e.id === exerciseId);
-  if (!exercise) return '';
-  const sets = getSets().filter(s => s.sessionId === state.activeSessionId && s.exerciseId === exerciseId);
-  const lastSet = sets.length ? sets[sets.length - 1] : null;
-  const defWeight = lastSet ? lastSet.weight : 20;
-  const defReps   = lastSet ? lastSet.reps : 10;
-
-  const setRows = sets.map((s, i) => `
-    <tr>
-      <td style="color:var(--color-text-tertiary);font-size:12px;">${i + 1}</td>
-      <td>${s.weight}${s.unit}</td>
-      <td>${s.reps}</td>
-    </tr>
-  `).join('');
+function buildDayCard(day) {
+  const lastLog = getLastLogForDay(day.day);
+  const daysAgoText = lastLog ? daysAgoLabel(lastLog.date) : null;
+  const isRecent   = lastLog && daysSince(lastLog.date) <= 7;
+  const preview = day.exercises.slice(0, 3).map(e => e.name).join(', ')
+    + (day.exercises.length > 3 ? ` +${day.exercises.length - 3} more` : '');
 
   return `
-    <div class="ex-card">
-      <div class="ex-card-header">
-        <span class="ex-card-name">${exercise.name}</span>
-        <span class="tag">${exercise.muscleGroup}</span>
-      </div>
-      ${sets.length ? `
-      <div class="ex-card-sets">
-        <table class="sets-table">
-          <thead><tr><th>Set</th><th>Weight</th><th>Reps</th></tr></thead>
-          <tbody>${setRows}</tbody>
-        </table>
-      </div>` : ''}
-      <div class="ex-card-entry">
-        <div class="entry-row">
-          <span class="entry-label">Weight</span>
-          <div class="stepper">
-            <button class="stepper-btn" data-weight-minus="${exerciseId}">−</button>
-            <input class="stepper-input" type="number" min="0" max="999" value="${defWeight}" data-weight-input="${exerciseId}" />
-            <button class="stepper-btn" data-weight-plus="${exerciseId}">+</button>
-          </div>
-          <span style="font-size:13px;color:var(--color-text-secondary);margin-left:4px;">${getSettings().defaultUnit}</span>
-        </div>
-        <div class="entry-row">
-          <span class="entry-label">Reps</span>
-          <div class="stepper">
-            <button class="stepper-btn" data-reps-minus="${exerciseId}">−</button>
-            <input class="stepper-input" type="number" min="1" max="100" value="${defReps}" data-reps-input="${exerciseId}" />
-            <button class="stepper-btn" data-reps-plus="${exerciseId}">+</button>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-full" data-log-exercise="${exerciseId}" style="margin-top:2px;">
-          Log Set ${sets.length + 1}
-        </button>
-      </div>
-    </div>
-  `;
-}
-
-function stepWeight() {
-  return getSettings().defaultUnit === 'kg' ? 2.5 : 5;
-}
-
-function stepField(input, delta, min, max) {
-  if (!input) return;
-  let val = parseFloat(input.value) || 0;
-  val = Math.min(max, Math.max(min, val + delta));
-  input.value = Number.isInteger(val) ? val : val.toFixed(1);
-}
-
-function startSession() {
-  const id = generateId('sess');
-  const sessions = getSessions();
-  sessions.push({ id, startedAt: new Date().toISOString(), finishedAt: null, notes: '' });
-  saveSessions(sessions);
-  setActiveSession(id);
-  state.activeSessionId = id;
-  state.confirmingFinish = false;
-  renderTodayTab();
-}
-
-function finishSession() {
-  stopTimer();
-  const sessions = getSessions();
-  const idx = sessions.findIndex(s => s.id === state.activeSessionId);
-  if (idx !== -1) sessions[idx].finishedAt = new Date().toISOString();
-  saveSessions(sessions);
-  clearActiveSession();
-  state.activeSessionId = null;
-  state.confirmingFinish = false;
-  showToast('Workout complete!', 'success');
-  renderTodayTab();
-}
-
-function startTimer() {
-  stopTimer();
-  state.timerInterval = setInterval(updateTimerDisplay, 1000);
-}
-
-function stopTimer() {
-  if (state.timerInterval) { clearInterval(state.timerInterval); state.timerInterval = null; }
-}
-
-function updateTimerDisplay() {
-  const el = document.getElementById('session-timer');
-  if (!el || !state.activeSessionId) return;
-  const session = getSessions().find(s => s.id === state.activeSessionId);
-  if (!session) return;
-  el.textContent = formatTimerLive(Date.now() - new Date(session.startedAt));
-}
-
-function logSet(exerciseId) {
-  const weightInput = document.querySelector(`[data-weight-input="${exerciseId}"]`);
-  const repsInput   = document.querySelector(`[data-reps-input="${exerciseId}"]`);
-  const weight = parseFloat(weightInput?.value);
-  const reps   = parseInt(repsInput?.value);
-  if (isNaN(weight) || isNaN(reps) || weight <= 0 || reps <= 0) {
-    showToast('Enter valid weight and reps', 'error');
-    return;
-  }
-  const sets = getSets();
-  const setNum = getNextSetNumber(state.activeSessionId, exerciseId);
-  sets.push({
-    id: generateId('set'),
-    sessionId: state.activeSessionId,
-    exerciseId,
-    setNumber: setNum,
-    weight,
-    reps,
-    unit: getSettings().defaultUnit,
-    loggedAt: new Date().toISOString(),
-  });
-  saveSets(sets);
-  showToast(`Set ${setNum} logged — ${weight}${getSettings().defaultUnit} × ${reps}`, 'success');
-  // Re-render just the exercise cards without rebuilding the whole tab
-  renderActiveSession(document.getElementById('tab-today'));
-}
-
-function openAddExerciseSheet() {
-  const addedIds = new Set(getSessionExerciseIds(state.activeSessionId));
-  const exercises = getExercises();
-
-  function renderList(query) {
-    const q = query.toLowerCase();
-    const filtered = exercises.filter(e => e.name.toLowerCase().includes(q) || e.muscleGroup.toLowerCase().includes(q));
-    if (!filtered.length) return '<div class="text-secondary" style="padding:20px 0;text-align:center;font-size:14px;">No exercises found</div>';
-    return filtered.map(e => {
-      const added = addedIds.has(e.id);
-      return `<div class="sheet-ex-row${added ? ' added' : ''}" data-add-ex="${e.id}">
+    <div class="day-card" data-action="start-day" data-day="${day.day}">
+      <div class="day-card-top">
         <div>
-          <div class="sheet-ex-row-name">${e.name}</div>
-          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">${e.muscleGroup}</div>
+          <div class="day-label">Day ${day.day}</div>
+          <div class="day-name">${day.name}</div>
         </div>
-        ${added
-          ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
-          : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
-        }
-      </div>`;
-    }).join('');
-  }
-
-  openSheet({
-    title: 'Add Exercise',
-    renderFn: () => `
-      <div class="search-wrap" style="margin-bottom:14px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="input" type="search" id="sheet-search" placeholder="Search exercises…" autocomplete="off" />
+        <div class="day-arrow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </div>
-      <div class="sheet-ex-row text-accent" id="btn-new-ex-shortcut" style="font-weight:600;">
-        <span>+ New Exercise</span>
+      <div class="day-exercises-preview">${preview}</div>
+      <div class="day-card-footer">
+        <span class="day-count">${day.exercises.length} exercises</span>
+        <div class="last-done">
+          <div class="last-done-dot${isRecent ? ' recent' : ''}"></div>
+          <span>${daysAgoText || 'Never done'}</span>
+        </div>
       </div>
-      <div id="sheet-ex-list">${renderList('')}</div>
-    `,
-    onOpen: () => {
-      const search = document.getElementById('sheet-search');
-      const list   = document.getElementById('sheet-ex-list');
-      search.addEventListener('input', () => {
-        list.innerHTML = renderList(search.value);
-        attachExerciseRowListeners(addedIds);
-      });
-      document.getElementById('btn-new-ex-shortcut').addEventListener('click', () => {
-        closeSheet();
-        setTimeout(() => openNewExerciseSheet(true), 320);
-      });
-      attachExerciseRowListeners(addedIds);
-    },
-  });
+    </div>`;
 }
 
-function attachExerciseRowListeners(addedIds) {
-  document.querySelectorAll('[data-add-ex]').forEach(row => {
-    if (addedIds.has(row.dataset.addEx)) return;
-    row.addEventListener('click', () => addExerciseToSession(row.dataset.addEx));
-  });
+function getLastLogForDay(dayNum) {
+  const logs = getLogs().filter(l => l.day === dayNum).sort((a,b) => new Date(b.date) - new Date(a.date));
+  return logs[0] || null;
 }
 
-function addExerciseToSession(exerciseId) {
-  const added = new Set(getSessionExerciseIds(state.activeSessionId));
-  if (added.has(exerciseId)) return;
-  // We use an empty "anchor" set to track order; instead we just log the exercise implicitly when the first set is logged.
-  // To track which exercises are added before sets, we use a transient marker.
-  if (!window._sessionExercises) window._sessionExercises = {};
-  if (!window._sessionExercises[state.activeSessionId]) window._sessionExercises[state.activeSessionId] = [];
-  if (!window._sessionExercises[state.activeSessionId].includes(exerciseId)) {
-    window._sessionExercises[state.activeSessionId].push(exerciseId);
-  }
-  closeSheet();
-  setTimeout(() => renderTodayTab(), 320);
+function daysSince(iso) {
+  return Math.floor((Date.now() - new Date(iso)) / 86400000);
 }
 
-// Extend getSessionExerciseIds to include pre-added (no sets yet) exercises
-const _originalGetSessionExerciseIds = getSessionExerciseIds;
-function getSessionExerciseIdsWithPending(sessionId) {
-  const fromSets = _originalGetSessionExerciseIds(sessionId);
-  const pending  = (window._sessionExercises || {})[sessionId] || [];
-  const merged = [...fromSets];
-  pending.forEach(id => { if (!merged.includes(id)) merged.push(id); });
-  return merged;
+function daysAgoLabel(iso) {
+  const d = daysSince(iso);
+  if (d === 0) return 'Done today';
+  if (d === 1) return 'Done yesterday';
+  return `Done ${d} days ago`;
 }
 
 /* ============================================================
-   Section 7: History Tab
+   Section 7: Workout View
    ============================================================ */
 
-function renderHistoryTab() {
-  const el = document.getElementById('tab-history');
-  const sessions = getSessions().filter(s => s.finishedAt).sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt));
+function initDraft(dayNum) {
+  const day = findDay(dayNum);
+  if (!day) return;
+  const exercises = {};
+  day.exercises.forEach(ex => {
+    const suggestion = getSuggestedWeight(ex.id);
+    exercises[ex.id] = {
+      weight: suggestion ? suggestion.weight : null,
+      sets: Array(ex.sets).fill(null),
+    };
+  });
+  state.draft = { day: dayNum, date: new Date().toISOString(), exercises };
+  saveDraft(state.draft);
+}
 
-  if (!sessions.length) {
-    el.innerHTML = `
+function renderWorkout(dayNum) {
+  const day = findDay(dayNum);
+  if (!day) return;
+
+  document.getElementById('topbar-title').textContent = day.name;
+  updateSaveButton();
+
+  const mc = document.getElementById('main-content');
+  mc.innerHTML = `
+    <div style="padding:16px 0 0;">
+      ${day.exercises.map(ex => buildExercisePanel(ex)).join('')}
+      <div style="height:16px;"></div>
+    </div>`;
+}
+
+function buildExercisePanel(ex) {
+  const draftEx = state.draft?.exercises[ex.id];
+  const doneSets = draftEx ? draftEx.sets.filter(s => s !== null).length : 0;
+  const allDone  = doneSets === ex.sets;
+
+  const suggestion = getSuggestedWeight(ex.id);
+  let hintHTML = '';
+  if (ex.trackWeight && suggestion) {
+    if (suggestion.weight === null) {
+      hintHTML = `<span class="progression-hint neutral">First session</span>`;
+    } else if (suggestion.increased) {
+      hintHTML = `<span class="progression-hint">↑ from ${suggestion.fromWeight}${getSettings().unit}</span>`;
+    } else {
+      hintHTML = `<span class="progression-hint neutral">Same as last</span>`;
+    }
+  }
+
+  const currentWeight = draftEx?.weight ?? (suggestion?.weight ?? null);
+
+  const weightRow = ex.trackWeight ? `
+    <div class="weight-row">
+      <span class="weight-label">Weight</span>
+      <div class="stepper">
+        <button class="step-btn" data-action="weight-minus" data-ex-id="${ex.id}">−</button>
+        <input class="step-input" type="number" min="0" max="500" step="${getSettings().unit === 'kg' ? 2.5 : 5}"
+          value="${currentWeight !== null ? currentWeight : ''}"
+          placeholder="—"
+          data-weight-input="${ex.id}" />
+        <button class="step-btn" data-action="weight-plus" data-ex-id="${ex.id}">+</button>
+      </div>
+      <span class="weight-unit">${getSettings().unit}</span>
+      ${hintHTML}
+    </div>` : '';
+
+  const setRows = Array.from({ length: ex.sets }, (_, i) => buildSetRow(ex, i, draftEx)).join('');
+
+  const repLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
+
+  return `
+    <div class="ex-panel${allDone ? ' all-done' : ''}" id="ex-panel-${ex.id}">
+      <div class="ex-panel-header">
+        <div class="ex-name">${ex.name}${ex.perSide ? ' <span style="font-size:12px;font-weight:500;color:var(--text-3)">(each side)</span>' : ''}</div>
+        <div class="ex-meta">
+          <span class="tag">${ex.muscle}</span>
+          <span class="ex-meta-text">${ex.sets} sets · ${ex.repsDisplay} ${repLabel}</span>
+        </div>
+        ${ex.notes ? `<div class="ex-note">${ex.notes}</div>` : ''}
+      </div>
+      ${weightRow}
+      <div class="sets-area">${setRows}</div>
+    </div>`;
+}
+
+function buildSetRow(ex, i, draftEx) {
+  const logged = draftEx?.sets[i] ?? null;
+
+  if (logged !== null) {
+    // Done state
+    const w = draftEx.weight;
+    const weightText = ex.trackWeight && w !== null ? ` · ${w}${getSettings().unit}` : '';
+    const repsLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
+    const repsText  = ex.repsUnit === 'dist' ? '30m ✓' : `${logged} ${repsLabel}`;
+    return `
+      <div class="set-row done" data-ex-id="${ex.id}" data-set-idx="${i}">
+        <span class="set-num">Set ${i + 1}</span>
+        <div class="set-done-display">
+          <span class="set-done-reps">${repsText}</span>
+          <span class="set-done-weight">${weightText}</span>
+        </div>
+        <div class="set-done-check" data-action="unlog-set" data-ex-id="${ex.id}" data-set-idx="${i}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>`;
+  }
+
+  // Pending state
+  if (ex.repsUnit === 'dist') {
+    // Farmer's carry: just a Done button
+    return `
+      <div class="set-row" data-ex-id="${ex.id}" data-set-idx="${i}">
+        <span class="set-num">Set ${i + 1}</span>
+        <button class="done-btn" data-action="log-set" data-ex-id="${ex.id}" data-set-idx="${i}">30m — Done</button>
+      </div>`;
+  }
+
+  const defaultReps = getLastSetReps(ex.id, i) ?? ex.repsMin;
+  const repsLabel   = ex.repsUnit === 'secs' ? 'sec' : 'reps';
+
+  return `
+    <div class="set-row" data-ex-id="${ex.id}" data-set-idx="${i}">
+      <span class="set-num">Set ${i + 1}</span>
+      <div class="stepper" style="flex:1;">
+        <button class="step-btn" data-action="reps-minus" data-ex-id="${ex.id}" data-set-idx="${i}">−</button>
+        <input class="step-input" style="flex:1;width:auto;" type="number" min="1" max="99"
+          value="${defaultReps}"
+          data-reps-input="${ex.id}-${i}" />
+        <button class="step-btn" data-action="reps-plus" data-ex-id="${ex.id}" data-set-idx="${i}">+</button>
+      </div>
+      <span style="font-size:12px;color:var(--text-3);flex-shrink:0;">${repsLabel}</span>
+      <button class="log-btn" data-action="log-set" data-ex-id="${ex.id}" data-set-idx="${i}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+    </div>`;
+}
+
+function refreshExercisePanel(exId) {
+  const ex    = findExercise(exId);
+  const panel = document.getElementById(`ex-panel-${exId}`);
+  if (!ex || !panel) return;
+  const newHTML = buildExercisePanel(ex);
+  const tmp = document.createElement('div');
+  tmp.innerHTML = newHTML;
+  panel.replaceWith(tmp.firstElementChild);
+  // Re-attach weight input listener
+  const newInput = document.querySelector(`[data-weight-input="${exId}"]`);
+  if (newInput) attachWeightInputListener(newInput, exId);
+}
+
+function attachWeightInputListener(input, exId) {
+  input.addEventListener('change', () => {
+    const v = parseFloat(input.value);
+    if (!isNaN(v) && state.draft?.exercises[exId]) {
+      state.draft.exercises[exId].weight = v;
+      saveDraft(state.draft);
+    }
+  });
+}
+
+function logSet(exId, setIdx) {
+  if (!state.draft?.exercises[exId]) return;
+  const ex = findExercise(exId);
+  if (!ex) return;
+
+  let reps;
+  if (ex.repsUnit === 'dist') {
+    reps = 1;
+  } else {
+    const input = document.querySelector(`[data-reps-input="${exId}-${setIdx}"]`);
+    reps = parseInt(input?.value) || ex.repsMin;
+  }
+
+  // Capture weight from DOM in case user typed without blur
+  const wInput = document.querySelector(`[data-weight-input="${exId}"]`);
+  if (wInput && wInput.value !== '') {
+    const v = parseFloat(wInput.value);
+    if (!isNaN(v)) state.draft.exercises[exId].weight = v;
+  }
+
+  state.draft.exercises[exId].sets[setIdx] = reps;
+  saveDraft(state.draft);
+  refreshExercisePanel(exId);
+  updateSaveButton();
+}
+
+function unlogSet(exId, setIdx) {
+  if (!state.draft?.exercises[exId]) return;
+  state.draft.exercises[exId].sets[setIdx] = null;
+  saveDraft(state.draft);
+  refreshExercisePanel(exId);
+  updateSaveButton();
+}
+
+function adjustWeight(exId, delta) {
+  if (!state.draft?.exercises[exId]) return;
+  const step = getSettings().unit === 'kg' ? 2.5 : 5;
+  const current = state.draft.exercises[exId].weight ?? 0;
+  const next = Math.max(0, Math.round((current + delta * step) * 10) / 10);
+  state.draft.exercises[exId].weight = next;
+  saveDraft(state.draft);
+  const input = document.querySelector(`[data-weight-input="${exId}"]`);
+  if (input) input.value = next;
+}
+
+function adjustReps(exId, setIdx, delta) {
+  const input = document.querySelector(`[data-reps-input="${exId}-${setIdx}"]`);
+  if (!input) return;
+  const v = parseInt(input.value) || 1;
+  input.value = Math.max(1, Math.min(99, v + delta));
+}
+
+function updateSaveButton() {
+  const btn = document.getElementById('btn-save');
+  if (!btn || !state.draft) return;
+  const anyLogged = Object.values(state.draft.exercises)
+    .some(ex => ex.sets.some(s => s !== null));
+  btn.disabled = !anyLogged;
+}
+
+function saveWorkout() {
+  if (!state.draft) return;
+  const sets = [];
+  for (const [exId, exData] of Object.entries(state.draft.exercises)) {
+    exData.sets.forEach((reps, i) => {
+      if (reps !== null) {
+        sets.push({ exerciseId: exId, setIndex: i, weight: exData.weight ?? 0, reps });
+      }
+    });
+  }
+  const log = {
+    id: 'log_' + Date.now(),
+    day: state.draft.day,
+    date: state.draft.date,
+    sets,
+  };
+  const logs = getLogs();
+  logs.push(log);
+  saveLogs(logs);
+  clearDraft();
+  state.draft = null;
+  showToast('Workout saved!', 'success');
+  navigate('workouts');
+}
+
+/* ============================================================
+   Section 8: History View
+   ============================================================ */
+
+function renderHistory() {
+  const mc   = document.getElementById('main-content');
+  const logs = getLogs().sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (!logs.length) {
+    mc.innerHTML = `
       <div class="page-header"><div class="page-title">History</div></div>
       <div class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
         <div class="empty-state-title">No workouts yet</div>
-        <div class="empty-state-sub">Start your first session from the Today tab.</div>
+        <div class="empty-state-sub">Complete your first workout and it'll appear here.</div>
       </div>`;
     return;
   }
 
-  el.innerHTML = `
+  mc.innerHTML = `
     <div class="page-header"><div class="page-title">History</div></div>
-    <div style="padding:0 16px;" id="history-list">
-      ${sessions.map(s => buildSessionCardHTML(s)).join('')}
-    </div>`;
-
-  sessions.forEach(session => {
-    const card = el.querySelector(`[data-session-card="${session.id}"]`);
-    if (!card) return;
-    card.querySelector('.session-card-header').addEventListener('click', () => toggleSessionExpand(session.id));
-    const delBtn = card.querySelector(`[data-delete-session="${session.id}"]`);
-    if (delBtn) delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteSession(session.id); });
-  });
+    ${logs.map(l => buildHistoryCard(l)).join('')}
+    <div style="height:8px;"></div>`;
 }
 
-function buildSessionCardHTML(session) {
-  const sets = getSessionSets(session.id);
-  const exIds = [...new Set(sets.map(s => s.exerciseId))];
-  const volume = computeTotalVolume(sets);
-  const expanded = state.expandedSessionId === session.id;
+function buildHistoryCard(log) {
+  const day       = findDay(log.day);
+  const dayName   = day ? day.name : `Day ${log.day}`;
+  const exIds     = [...new Set(log.sets.map(s => s.exerciseId))];
+  const totalSets = log.sets.length;
+  const totalVol  = log.sets.reduce((n, s) => n + s.weight * (s.reps === 1 ? 0 : s.reps), 0);
+  const expanded  = state.expandedLog === log.id;
 
-  const exercises = getExercises();
-
-  const expandedHTML = expanded ? `
-    <div class="session-expand">
-      <div class="session-expand-header">
-        <span style="font-size:13px;color:var(--color-text-secondary);">${exIds.length} exercises &middot; ${sets.length} sets</span>
-        <button class="btn btn-icon" style="background:var(--color-danger-subtle);color:var(--color-danger);border-radius:var(--radius-sm);" data-delete-session="${session.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        </button>
-      </div>
+  const expandHTML = expanded ? `
+    <div class="history-expand">
       ${exIds.map(eid => {
-        const ex = exercises.find(e => e.id === eid);
-        const exSets = sets.filter(s => s.exerciseId === eid);
-        return `<div style="margin-bottom:14px;">
-          <div style="font-weight:600;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
-            ${ex ? ex.name : 'Unknown'}
-            ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscleGroup}</span>` : ''}
-          </div>
-          <table class="sets-table">
-            <thead><tr><th>Set</th><th>Weight</th><th>Reps</th></tr></thead>
-            <tbody>${exSets.map((s, i) => `<tr><td style="color:var(--color-text-tertiary);font-size:12px;">${i+1}</td><td>${s.weight}${s.unit}</td><td>${s.reps}</td></tr>`).join('')}</tbody>
-          </table>
+        const ex      = findExercise(eid);
+        const exSets  = log.sets.filter(s => s.exerciseId === eid);
+        const hasW    = ex?.trackWeight;
+        const pills   = exSets.map((s, i) => {
+          const rLabel = ex?.repsUnit === 'secs' ? 's' : ex?.repsUnit === 'dist' ? '✓' : '';
+          const rText  = ex?.repsUnit === 'dist' ? '30m ✓' : `${s.reps}${rLabel}`;
+          const wText  = hasW && s.weight ? ` @ ${s.weight}${getSettings().unit}` : '';
+          return `<span class="history-set-pill">${rText}${wText}</span>`;
+        }).join('');
+        return `<div class="history-ex-block">
+          <div class="history-ex-name">${ex ? ex.name : eid} ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscle}</span>` : ''}</div>
+          <div class="history-sets-row">${pills}</div>
         </div>`;
       }).join('')}
+      <button class="history-delete-btn" data-action="delete-log" data-log-id="${log.id}">Delete workout</button>
     </div>` : '';
 
-  return `<div class="session-card" data-session-card="${session.id}">
-    <div class="session-card-header">
-      <div>
-        <div class="session-date">${formatDate(session.startedAt)}</div>
-        <div class="session-meta" style="margin-top:3px;">${computeSessionDuration(session)}</div>
-      </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.2s;${expanded ? 'transform:rotate(180deg)' : ''}"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="stat-row" style="padding:0 16px;border-top:1px solid var(--color-border);border-bottom:${expanded ? '1px solid var(--color-border)' : 'none'};">
-      <div class="stat-item"><div class="stat-value">${exIds.length}</div><div class="stat-label">Exercises</div></div>
-      <div class="stat-item"><div class="stat-value">${sets.length}</div><div class="stat-label">Sets</div></div>
-      <div class="stat-item"><div class="stat-value">${volume > 0 ? volume.toLocaleString() : '—'}</div><div class="stat-label">Vol (${sets[0]?.unit || 'kg'})</div></div>
-    </div>
-    ${expandedHTML}
-  </div>`;
-}
-
-function toggleSessionExpand(sessionId) {
-  state.expandedSessionId = state.expandedSessionId === sessionId ? null : sessionId;
-  renderHistoryTab();
-}
-
-function deleteSession(sessionId) {
-  const sessions = getSessions().filter(s => s.id !== sessionId);
-  saveSessions(sessions);
-  const sets = getSets().filter(s => s.sessionId !== sessionId);
-  saveSets(sets);
-  if (state.expandedSessionId === sessionId) state.expandedSessionId = null;
-  showToast('Session deleted', 'info');
-  renderHistoryTab();
-}
-
-/* ============================================================
-   Section 8: Exercises Tab
-   ============================================================ */
-
-function renderExercisesTab() {
-  const el = document.getElementById('tab-exercises');
-  const exercises = getFilteredExercises();
-
-  el.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">Exercises</div>
-      <button class="btn btn-accent-text btn-sm" id="btn-new-exercise">+ New</button>
-    </div>
-    <div style="padding:0 16px 12px;">
-      <div class="search-wrap" style="margin-bottom:12px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="input" type="search" id="ex-search" placeholder="Search exercises…" value="${state.exerciseSearch}" autocomplete="off" />
-      </div>
-      <div class="chip-row" id="filter-chips">
-        ${['All', ...MUSCLE_GROUPS].map(g => `<button class="chip${state.exerciseFilter === g ? ' active' : ''}" data-filter="${g}">${g}</button>`).join('')}
-      </div>
-    </div>
-    <div style="padding:0 16px;" id="ex-list">
-      ${exercises.length
-        ? exercises.map(e => `
-          <div class="ex-list-item" data-open-exercise="${e.id}">
-            <div class="ex-list-name">${e.name}</div>
-            <span class="tag">${e.muscleGroup}</span>
-          </div>`).join('')
-        : `<div class="empty-state" style="padding:40px 0;">
-            <div class="empty-state-title">No exercises found</div>
-            <div class="empty-state-sub">Try a different search or filter.</div>
-          </div>`
-      }
-    </div>
-  `;
-
-  el.querySelector('#btn-new-exercise').addEventListener('click', () => openNewExerciseSheet(false));
-  el.querySelector('#ex-search').addEventListener('input', e => {
-    state.exerciseSearch = e.target.value;
-    renderExercisesTab();
-  });
-  el.querySelectorAll('[data-filter]').forEach(chip => {
-    chip.addEventListener('click', () => { state.exerciseFilter = chip.dataset.filter; renderExercisesTab(); });
-  });
-  el.querySelectorAll('[data-open-exercise]').forEach(item => {
-    item.addEventListener('click', () => openExerciseDetail(item.dataset.openExercise));
-  });
-}
-
-function getFilteredExercises() {
-  let list = getExercises();
-  if (state.exerciseFilter !== 'All') list = list.filter(e => e.muscleGroup === state.exerciseFilter);
-  if (state.exerciseSearch) {
-    const q = state.exerciseSearch.toLowerCase();
-    list = list.filter(e => e.name.toLowerCase().includes(q) || e.muscleGroup.toLowerCase().includes(q));
-  }
-  return list.sort((a, b) => a.name.localeCompare(b.name));
-}
-
-function openExerciseDetail(exerciseId) {
-  const exercise = getExercises().find(e => e.id === exerciseId);
-  if (!exercise) return;
-
-  const progressData = getExerciseProgressData(exerciseId);
-  const recentSessions = getSessions()
-    .filter(s => s.finishedAt && getSets().some(st => st.sessionId === s.id && st.exerciseId === exerciseId))
-    .sort((a, b) => new Date(b.startedAt) - new Date(a.startedAt))
-    .slice(0, 5);
-
-  openSheet({
-    title: exercise.name,
-    headerExtra: `
-      <button class="btn btn-icon" id="btn-edit-ex" style="width:36px;height:36px;" title="Edit">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
-      <button class="btn btn-icon" id="btn-del-ex" style="width:36px;height:36px;background:var(--color-danger-subtle);color:var(--color-danger);" title="Delete">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-      </button>`,
-    renderFn: () => `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+  return `
+    <div class="history-card" data-log-id="${log.id}">
+      <div class="history-card-header" data-action="toggle-log" data-log-id="${log.id}">
         <div>
-          <div style="font-size:20px;font-weight:700;">${exercise.name}</div>
-          <span class="tag" style="margin-top:4px;">${exercise.muscleGroup}</span>
+          <div class="history-date">${formatDate(log.date)}</div>
+          <div class="history-day-name">${dayName}</div>
         </div>
-        <div style="display:flex;gap:6px;" id="ex-detail-actions"></div>
+        <svg class="history-chevron${expanded ? ' open' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Weight Progression</div>
-      ${progressData.data.length >= 2
-        ? `<div class="chart-wrap"><canvas id="progress-chart"></canvas></div>`
-        : `<div class="card" style="text-align:center;padding:20px;color:var(--color-text-secondary);font-size:13px;">Log at least 2 sessions to see your progress chart.</div>`
-      }
-      <div style="font-size:13px;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin:16px 0 8px;">Recent Sets</div>
-      ${recentSessions.length
-        ? recentSessions.map(sess => {
-            const exSets = getSets().filter(s => s.sessionId === sess.id && s.exerciseId === exerciseId);
-            return `<div style="margin-bottom:12px;">
-              <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:4px;">${formatDate(sess.startedAt)}</div>
-              <table class="sets-table">
-                <thead><tr><th>Set</th><th>Weight</th><th>Reps</th></tr></thead>
-                <tbody>${exSets.map((s,i) => `<tr><td style="font-size:12px;color:var(--color-text-tertiary);">${i+1}</td><td>${s.weight}${s.unit}</td><td>${s.reps}</td></tr>`).join('')}</tbody>
-              </table>
-            </div>`;
-          }).join('')
-        : `<div style="color:var(--color-text-secondary);font-size:14px;">No sets logged yet.</div>`
-      }
-    `,
-    onOpen: () => {
-      const actionsEl = document.getElementById('ex-detail-actions');
-      if (actionsEl) {
-        actionsEl.innerHTML = `
-          <button class="btn btn-icon" id="btn-edit-ex" style="width:36px;height:36px;" title="Edit">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="btn btn-icon" id="btn-del-ex" style="width:36px;height:36px;background:var(--color-danger-subtle);color:var(--color-danger);" title="Delete">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-          </button>`;
-        document.getElementById('btn-edit-ex').addEventListener('click', () => {
-          closeSheet();
-          setTimeout(() => openEditExerciseSheet(exerciseId), 320);
-        });
-        document.getElementById('btn-del-ex').addEventListener('click', () => {
-          if (confirm(`Delete "${exercise.name}"? This will also remove all logged sets for this exercise.`)) {
-            closeSheet();
-            deleteExercise(exerciseId);
-          }
-        });
-      }
-
-      if (progressData.data.length >= 2) {
-        const canvas = document.getElementById('progress-chart');
-        if (canvas) {
-          if (state.progressChart) { state.progressChart.destroy(); state.progressChart = null; }
-          state.progressChart = new Chart(canvas, {
-            type: 'line',
-            data: {
-              labels: progressData.labels,
-              datasets: [{
-                data: progressData.data,
-                borderColor: '#22c55e',
-                backgroundColor: 'rgba(34,197,94,0.1)',
-                pointBackgroundColor: '#22c55e',
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                tension: 0.3,
-                fill: true,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false }, tooltip: { callbacks: {
-                label: ctx => ` ${ctx.parsed.y}${getSettings().defaultUnit}`
-              }}},
-              scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { size: 11 } } },
-                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', font: { size: 11 } }, beginAtZero: false },
-              }
-            }
-          });
-        }
-      }
-    },
-  });
+      <div class="history-stats">
+        <div class="history-stat"><div class="history-stat-val">${exIds.length}</div><div class="history-stat-label">Exercises</div></div>
+        <div class="history-stat"><div class="history-stat-val">${totalSets}</div><div class="history-stat-label">Sets</div></div>
+        <div class="history-stat"><div class="history-stat-val">${totalVol > 0 ? totalVol.toLocaleString() : '—'}</div><div class="history-stat-label">Volume</div></div>
+      </div>
+      ${expandHTML}
+    </div>`;
 }
 
-function openNewExerciseSheet(returnToAddSheet) {
-  openSheet({
-    title: 'New Exercise',
-    renderFn: () => `
-      <div class="form-group">
-        <label class="form-label">Exercise Name</label>
-        <input class="input" type="text" id="new-ex-name" placeholder="e.g. Barbell Squat" autocomplete="off" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Muscle Group</label>
-        <select class="select" id="new-ex-group">
-          ${MUSCLE_GROUPS.map(g => `<option value="${g}">${g}</option>`).join('')}
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="btn btn-ghost" id="btn-cancel-new-ex" style="flex:1;">Cancel</button>
-        <button class="btn btn-primary" id="btn-save-new-ex" style="flex:2;">Save Exercise</button>
-      </div>
-    `,
-    onOpen: () => {
-      document.getElementById('new-ex-name').focus();
-      document.getElementById('btn-cancel-new-ex').addEventListener('click', closeSheet);
-      document.getElementById('btn-save-new-ex').addEventListener('click', () => {
-        const name  = document.getElementById('new-ex-name').value.trim();
-        const group = document.getElementById('new-ex-group').value;
-        const err = validateExerciseName(name, null);
-        if (err) { showToast(err, 'error'); return; }
-        saveExercise(null, name, group);
-        closeSheet();
-        if (returnToAddSheet) setTimeout(openAddExerciseSheet, 320);
-        else renderExercisesTab();
-      });
-    },
-  });
-}
-
-function openEditExerciseSheet(exerciseId) {
-  const exercise = getExercises().find(e => e.id === exerciseId);
-  if (!exercise) return;
-  openSheet({
-    title: 'Edit Exercise',
-    renderFn: () => `
-      <div class="form-group">
-        <label class="form-label">Exercise Name</label>
-        <input class="input" type="text" id="edit-ex-name" value="${exercise.name}" autocomplete="off" />
-      </div>
-      <div class="form-group">
-        <label class="form-label">Muscle Group</label>
-        <select class="select" id="edit-ex-group">
-          ${MUSCLE_GROUPS.map(g => `<option value="${g}"${g === exercise.muscleGroup ? ' selected' : ''}>${g}</option>`).join('')}
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="btn btn-ghost" id="btn-cancel-edit" style="flex:1;">Cancel</button>
-        <button class="btn btn-primary" id="btn-save-edit" style="flex:2;">Save Changes</button>
-      </div>
-    `,
-    onOpen: () => {
-      document.getElementById('btn-cancel-edit').addEventListener('click', closeSheet);
-      document.getElementById('btn-save-edit').addEventListener('click', () => {
-        const name  = document.getElementById('edit-ex-name').value.trim();
-        const group = document.getElementById('edit-ex-group').value;
-        const err = validateExerciseName(name, exerciseId);
-        if (err) { showToast(err, 'error'); return; }
-        saveExercise(exerciseId, name, group);
-        closeSheet();
-        renderExercisesTab();
-      });
-    },
-  });
-}
-
-function validateExerciseName(name, excludeId) {
-  if (!name) return 'Exercise name is required.';
-  const exists = getExercises().some(e => e.id !== excludeId && e.name.toLowerCase() === name.toLowerCase());
-  if (exists) return 'An exercise with this name already exists.';
-  return null;
-}
-
-function saveExercise(id, name, muscleGroup) {
-  const exercises = getExercises();
-  if (id) {
-    const idx = exercises.findIndex(e => e.id === id);
-    if (idx !== -1) { exercises[idx].name = name; exercises[idx].muscleGroup = muscleGroup; }
-  } else {
-    exercises.push({ id: generateId('ex'), name, muscleGroup, createdAt: new Date().toISOString() });
-  }
-  saveExercises(exercises);
-  showToast(id ? 'Exercise updated' : 'Exercise added', 'success');
-}
-
-function deleteExercise(exerciseId) {
-  saveExercises(getExercises().filter(e => e.id !== exerciseId));
-  saveSets(getSets().filter(s => s.exerciseId !== exerciseId));
-  showToast('Exercise deleted', 'info');
-  renderExercisesTab();
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 /* ============================================================
-   Section 9: Settings Tab
+   Section 9: Settings View
    ============================================================ */
 
-function renderSettingsTab() {
-  const el = document.getElementById('tab-settings');
-  const settings = getSettings();
+function renderSettings() {
+  const mc  = document.getElementById('main-content');
+  const { unit } = getSettings();
 
-  el.innerHTML = `
+  mc.innerHTML = `
     <div class="page-header"><div class="page-title">Settings</div></div>
     <div style="padding:0 16px;">
 
@@ -873,8 +580,8 @@ function renderSettingsTab() {
           <div class="settings-row" style="cursor:default;">
             <span class="settings-row-label">Weight Unit</span>
             <div class="segmented">
-              <button class="seg-btn${settings.defaultUnit === 'kg' ? ' active' : ''}" data-unit="kg">kg</button>
-              <button class="seg-btn${settings.defaultUnit === 'lbs' ? ' active' : ''}" data-unit="lbs">lbs</button>
+              <button class="seg-btn${unit === 'kg' ? ' active' : ''}" data-action="set-unit" data-unit="kg">kg</button>
+              <button class="seg-btn${unit === 'lbs' ? ' active' : ''}" data-action="set-unit" data-unit="lbs">lbs</button>
             </div>
           </div>
         </div>
@@ -883,24 +590,24 @@ function renderSettingsTab() {
       <div class="settings-section">
         <div class="settings-label">Data</div>
         <div class="settings-card">
-          <div class="settings-row" id="btn-export">
-            <span class="settings-row-label">Export Data</span>
+          <div class="settings-row" data-action="export-data">
+            <span class="settings-row-label">Export Backup</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </div>
-          <div class="settings-row" id="btn-import">
-            <span class="settings-row-label">Import Data</span>
+          <div class="settings-row" data-action="import-data">
+            <span class="settings-row-label">Import Backup</span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
         </div>
-        <input type="file" id="import-file-input" accept=".json" style="display:none;" />
+        <input type="file" id="import-input" accept=".json" style="display:none;" />
       </div>
 
       <div class="settings-section">
         <div class="settings-label">Danger Zone</div>
         <div class="settings-card danger-card">
-          <div class="settings-row" id="btn-clear">
+          <div class="settings-row" data-action="clear-data">
             <span class="settings-row-label danger">Clear All Data</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
           </div>
         </div>
       </div>
@@ -910,39 +617,20 @@ function renderSettingsTab() {
         <div class="settings-card">
           <div class="settings-row" style="cursor:default;">
             <span class="settings-row-label">Liftr</span>
-            <span style="font-size:13px;color:var(--color-text-secondary);">v${VERSION}</span>
+            <span style="font-size:13px;color:var(--text-2);">v2.0.0</span>
           </div>
         </div>
       </div>
+    </div>`;
 
-    </div>
-  `;
-
-  el.querySelectorAll('[data-unit]').forEach(btn => {
-    btn.addEventListener('click', () => { toggleUnit(btn.dataset.unit); renderSettingsTab(); });
-  });
-  el.querySelector('#btn-export').addEventListener('click', handleExport);
-  el.querySelector('#btn-import').addEventListener('click', () => el.querySelector('#import-file-input').click());
-  el.querySelector('#import-file-input').addEventListener('change', e => {
+  document.getElementById('import-input').addEventListener('change', e => {
     if (e.target.files[0]) handleImport(e.target.files[0]);
     e.target.value = '';
   });
-  el.querySelector('#btn-clear').addEventListener('click', handleClearData);
-}
-
-function toggleUnit(unit) {
-  const s = getSettings(); s.defaultUnit = unit; saveSettings(s);
 }
 
 function handleExport() {
-  const data = {
-    exercises: getExercises(),
-    sessions: getSessions(),
-    sets: getSets(),
-    settings: getSettings(),
-    exportedAt: new Date().toISOString(),
-    version: VERSION,
-  };
+  const data = { logs: getLogs(), settings: getSettings(), exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -950,7 +638,7 @@ function handleExport() {
   a.download = 'liftr-backup-' + new Date().toISOString().slice(0, 10) + '.json';
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Data exported', 'success');
+  showToast('Backup exported', 'success');
 }
 
 function handleImport(file) {
@@ -958,41 +646,28 @@ function handleImport(file) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data.exercises) || !Array.isArray(data.sessions) || !Array.isArray(data.sets)) {
-        showToast('Invalid backup file format', 'error');
-        return;
-      }
+      if (!Array.isArray(data.logs)) { showToast('Invalid backup file', 'error'); return; }
       openSheet({
-        title: 'Import Data',
-        renderFn: () => `
-          <div style="color:var(--color-text-secondary);font-size:14px;margin-bottom:20px;line-height:1.7;">
-            This will <strong style="color:var(--color-danger);">replace all existing data</strong> with the backup containing:
-            <br><br>
-            <strong>${data.exercises.length}</strong> exercises &middot;
-            <strong>${data.sessions.length}</strong> sessions &middot;
-            <strong>${data.sets.length}</strong> sets
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost" id="btn-cancel-import" style="flex:1;">Cancel</button>
-            <button class="btn btn-danger" id="btn-confirm-import" style="flex:2;">Replace & Import</button>
-          </div>
-        `,
+        title: 'Import Backup',
+        html: `<div style="color:var(--text-2);font-size:14px;margin-bottom:20px;line-height:1.7;">
+          This will <strong style="color:var(--danger);">replace all existing data</strong> with
+          <strong>${data.logs.length}</strong> workout log${data.logs.length !== 1 ? 's' : ''}.
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-ghost" style="flex:1;" data-action="close-sheet">Cancel</button>
+          <button class="btn-danger" style="flex:2;" id="confirm-import-btn">Replace & Import</button>
+        </div>`,
         onOpen: () => {
-          document.getElementById('btn-cancel-import').addEventListener('click', closeSheet);
-          document.getElementById('btn-confirm-import').addEventListener('click', () => {
-            saveExercises(data.exercises);
-            saveSessions(data.sessions);
-            saveSets(data.sets);
+          document.getElementById('confirm-import-btn').addEventListener('click', () => {
+            saveLogs(data.logs);
             if (data.settings) saveSettings(data.settings);
             closeSheet();
-            showToast('Data imported successfully', 'success');
-            renderSettingsTab();
+            showToast('Data imported', 'success');
+            renderSettings();
           });
         },
       });
-    } catch {
-      showToast('Could not read backup file', 'error');
-    }
+    } catch { showToast('Could not read file', 'error'); }
   };
   reader.readAsText(file);
 }
@@ -1000,37 +675,31 @@ function handleImport(file) {
 function handleClearData() {
   openSheet({
     title: 'Clear All Data',
-    renderFn: () => `
-      <div style="color:var(--color-text-secondary);font-size:14px;margin-bottom:16px;line-height:1.7;">
-        This will permanently delete all your sessions, sets, and exercises. This cannot be undone.
-      </div>
-      <div class="form-group">
-        <label class="form-label">Type <strong style="color:var(--color-danger);">DELETE</strong> to confirm</label>
-        <input class="input" type="text" id="clear-confirm-input" placeholder="DELETE" autocomplete="off" />
-      </div>
-      <div style="display:flex;gap:8px;margin-top:6px;">
-        <button class="btn btn-ghost" id="btn-cancel-clear" style="flex:1;">Cancel</button>
-        <button class="btn btn-danger" id="btn-confirm-clear" style="flex:2;" disabled>Clear Everything</button>
-      </div>
-    `,
+    html: `<div style="color:var(--text-2);font-size:14px;margin-bottom:16px;line-height:1.7;">
+      Permanently deletes all workout history. Cannot be undone.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type <strong style="color:var(--danger);">DELETE</strong> to confirm</label>
+      <input class="form-input" type="text" id="clear-input" placeholder="DELETE" autocomplete="off" />
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn-ghost" style="flex:1;" data-action="close-sheet">Cancel</button>
+      <button class="btn-danger" id="confirm-clear-btn" style="flex:2;opacity:.4;" disabled>Clear Everything</button>
+    </div>`,
     onOpen: () => {
-      const input = document.getElementById('clear-confirm-input');
-      const confirmBtn = document.getElementById('btn-confirm-clear');
-      input.addEventListener('input', () => {
-        confirmBtn.disabled = input.value !== 'DELETE';
-        confirmBtn.style.opacity = input.value === 'DELETE' ? '1' : '0.4';
+      const inp = document.getElementById('clear-input');
+      const btn = document.getElementById('confirm-clear-btn');
+      inp.addEventListener('input', () => {
+        const ok = inp.value === 'DELETE';
+        btn.disabled = !ok;
+        btn.style.opacity = ok ? '1' : '0.4';
       });
-      document.getElementById('btn-cancel-clear').addEventListener('click', closeSheet);
-      confirmBtn.addEventListener('click', () => {
-        Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
-        window._sessionExercises = {};
-        state.activeSessionId = null;
-        state.expandedSessionId = null;
-        stopTimer();
+      btn.addEventListener('click', () => {
+        [KEYS.logs, KEYS.settings, KEYS.draft].forEach(k => store.remove(k));
+        state.draft = null;
         closeSheet();
         showToast('All data cleared', 'info');
-        seedDefaultExercises();
-        renderSettingsTab();
+        renderSettings();
       });
     },
   });
@@ -1042,156 +711,142 @@ function handleClearData() {
 
 let _sheetConfig = null;
 
-function openSheet(config) {
-  _sheetConfig = config;
-  const content = document.getElementById('sheet-content');
+function openSheet({ title, html, onOpen, onClose }) {
+  _sheetConfig = { onClose };
   const overlay = document.getElementById('sheet-overlay');
-
-  content.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 16px;">
-      <div style="font-size:18px;font-weight:700;">${config.title || ''}</div>
-    </div>
-    ${config.renderFn ? config.renderFn() : ''}
-  `;
-
+  document.getElementById('sheet-content').innerHTML = `
+    <div style="padding:4px 0 16px;font-size:18px;font-weight:700;">${title}</div>
+    ${html}`;
   overlay.classList.add('open');
-  state.sheetOpen = true;
-  if (config.onOpen) setTimeout(config.onOpen, 50);
+  if (onOpen) setTimeout(onOpen, 50);
 }
 
 function closeSheet() {
-  const overlay = document.getElementById('sheet-overlay');
-  overlay.classList.remove('open');
-  state.sheetOpen = false;
+  document.getElementById('sheet-overlay').classList.remove('open');
   if (_sheetConfig?.onClose) _sheetConfig.onClose();
   _sheetConfig = null;
-}
-
-function initSheetDismiss() {
-  const overlay = document.getElementById('sheet-overlay');
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeSheet();
-  });
 }
 
 /* ============================================================
    Section 11: Toast System
    ============================================================ */
 
-function showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.innerHTML = `<div class="toast-dot"></div>${message}`;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('out');
-    setTimeout(() => toast.remove(), 280);
-  }, 3000);
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<div class="toast-dot"></div>${msg}`;
+  c.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 280); }, 3000);
 }
 
 /* ============================================================
-   Section 12: Default Data & Init
+   Section 12: Event Delegation
    ============================================================ */
 
-function seedDefaultExercises() {
-  if (!getExercises().length) {
-    saveExercises(DEFAULT_EXERCISES.map(e => ({
-      id: generateId('ex'),
-      name: e.name,
-      muscleGroup: e.muscleGroup,
-      createdAt: new Date().toISOString(),
-    })));
+function initEvents() {
+  // Main content: clicks
+  document.getElementById('main-content').addEventListener('click', handleClick);
+
+  // Sheet overlay: clicks
+  document.getElementById('sheet-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('sheet-overlay')) closeSheet();
+    const action = e.target.closest('[data-action]')?.dataset.action;
+    if (action === 'close-sheet') closeSheet();
+  });
+
+  // Top bar save + back
+  document.getElementById('workout-topbar').addEventListener('click', handleClick);
+
+  // Bottom nav
+  document.getElementById('bottom-nav').addEventListener('click', e => {
+    const btn = e.target.closest('[data-nav]');
+    if (btn) navigate(btn.dataset.nav);
+  });
+
+  // Weight inputs: update draft on change
+  document.getElementById('main-content').addEventListener('change', e => {
+    const inp = e.target.closest('[data-weight-input]');
+    if (!inp) return;
+    const exId = inp.dataset.weightInput;
+    const v = parseFloat(inp.value);
+    if (!isNaN(v) && state.draft?.exercises[exId]) {
+      state.draft.exercises[exId].weight = v;
+      saveDraft(state.draft);
+    }
+  });
+}
+
+function handleClick(e) {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+  const exId   = target.dataset.exId;
+  const setIdx = target.dataset.setIdx !== undefined ? parseInt(target.dataset.setIdx) : undefined;
+
+  switch (action) {
+    case 'start-day': {
+      const day = parseInt(e.target.closest('[data-day]').dataset.day);
+      initDraft(day);
+      navigate('workout', day);
+      break;
+    }
+    case 'resume-draft':
+      if (state.draft) navigate('workout', state.draft.day);
+      break;
+    case 'discard-draft':
+      clearDraft(); state.draft = null; renderHome();
+      break;
+    case 'go-back':
+      navigate('workouts');
+      break;
+    case 'save-workout':
+      saveWorkout();
+      break;
+    case 'weight-minus': adjustWeight(exId, -1); break;
+    case 'weight-plus':  adjustWeight(exId, +1); break;
+    case 'reps-minus':   adjustReps(exId, setIdx, -1); break;
+    case 'reps-plus':    adjustReps(exId, setIdx, +1); break;
+    case 'log-set':      logSet(exId, setIdx); break;
+    case 'unlog-set':    unlogSet(exId, setIdx); break;
+    case 'toggle-log': {
+      const lid = target.dataset.logId;
+      state.expandedLog = state.expandedLog === lid ? null : lid;
+      renderHistory();
+      break;
+    }
+    case 'delete-log': {
+      const lid = target.dataset.logId;
+      if (confirm('Delete this workout from history?')) {
+        saveLogs(getLogs().filter(l => l.id !== lid));
+        if (state.expandedLog === lid) state.expandedLog = null;
+        showToast('Workout deleted', 'info');
+        renderHistory();
+      }
+      break;
+    }
+    case 'set-unit': {
+      const s = getSettings(); s.unit = target.dataset.unit; saveSettings(s);
+      renderSettings();
+      break;
+    }
+    case 'export-data': handleExport(); break;
+    case 'import-data': document.getElementById('import-input')?.click(); break;
+    case 'clear-data':  handleClearData(); break;
   }
 }
+
+/* ============================================================
+   Section 13: Init
+   ============================================================ */
 
 function init() {
-  seedDefaultExercises();
+  // Restore any in-progress draft
+  const savedDraft = getDraft();
+  if (savedDraft) state.draft = savedDraft;
 
-  // Restore active session
-  const activeId = getActiveSessionId();
-  if (activeId) {
-    const session = getSessions().find(s => s.id === activeId && !s.finishedAt);
-    if (session) { state.activeSessionId = activeId; }
-    else { clearActiveSession(); }
-  }
-
-  initNavigation();
-  initSheetDismiss();
-
-  // Override getSessionExerciseIds globally to include pending
-  window._sessionExercises = window._sessionExercises || {};
-
-  // Patch renderTodayTab to use extended exercise ids
-  const _originalRenderActiveSession = renderActiveSession;
-  window.renderActiveSession = function(el) {
-    const session = getSessions().find(s => s.id === state.activeSessionId);
-    if (!session) { clearActiveSession(); state.activeSessionId = null; renderIdleState(el); return; }
-    const exIds = getSessionExerciseIdsWithPending(state.activeSessionId);
-
-    el.innerHTML = `
-      <div id="session-header">
-        <div id="session-timer">00:00</div>
-        <div id="finish-area">
-          ${state.confirmingFinish
-            ? `<div class="confirm-finish">
-                 <button class="btn btn-ghost btn-sm" id="btn-cancel-finish">Cancel</button>
-                 <button class="btn btn-danger btn-sm" id="btn-confirm-finish">Confirm Finish</button>
-               </div>`
-            : `<button class="btn btn-danger btn-sm" id="btn-finish">Finish</button>`
-          }
-        </div>
-      </div>
-      <div id="session-body" style="padding:14px 16px 8px;">
-        ${exIds.map(eid => renderExerciseCard(eid)).join('')}
-        <button class="btn btn-secondary btn-full" id="btn-add-exercise" style="margin-top:4px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Exercise
-        </button>
-      </div>
-    `;
-
-    updateTimerDisplay();
-    startTimer();
-
-    if (state.confirmingFinish) {
-      el.querySelector('#btn-cancel-finish').addEventListener('click', () => { state.confirmingFinish = false; renderTodayTab(); });
-      el.querySelector('#btn-confirm-finish').addEventListener('click', finishSession);
-    } else {
-      el.querySelector('#btn-finish').addEventListener('click', () => { state.confirmingFinish = true; renderTodayTab(); });
-    }
-
-    el.querySelector('#btn-add-exercise').addEventListener('click', openAddExerciseSheet);
-
-    exIds.forEach(eid => {
-      const logBtn = el.querySelector(`[data-log-exercise="${eid}"]`);
-      if (logBtn) logBtn.addEventListener('click', () => logSet(eid));
-      const wMinus = el.querySelector(`[data-weight-minus="${eid}"]`);
-      const wPlus  = el.querySelector(`[data-weight-plus="${eid}"]`);
-      const rMinus = el.querySelector(`[data-reps-minus="${eid}"]`);
-      const rPlus  = el.querySelector(`[data-reps-plus="${eid}"]`);
-      if (wMinus) wMinus.addEventListener('click', () => stepField(el.querySelector(`[data-weight-input="${eid}"]`), -stepWeight(), 0, 999));
-      if (wPlus)  wPlus.addEventListener('click',  () => stepField(el.querySelector(`[data-weight-input="${eid}"]`), +stepWeight(), 0, 999));
-      if (rMinus) rMinus.addEventListener('click', () => stepField(el.querySelector(`[data-reps-input="${eid}"]`), -1, 1, 100));
-      if (rPlus)  rPlus.addEventListener('click',  () => stepField(el.querySelector(`[data-reps-input="${eid}"]`), +1, 1, 100));
-    });
-  };
-
-  renderTodayTab();
-
-  if (state.activeSessionId) startTimer();
-}
-
-// Patch renderTodayTab to use window.renderActiveSession when available
-const _baseRenderTodayTab = renderTodayTab;
-function renderTodayTab() {
-  const el = document.getElementById('tab-today');
-  state.activeSessionId = getActiveSessionId();
-  if (state.activeSessionId) {
-    (window.renderActiveSession || renderActiveSession)(el);
-  } else {
-    renderIdleState(el);
-  }
+  initEvents();
+  navigate('workouts');
 }
 
 document.addEventListener('DOMContentLoaded', init);
