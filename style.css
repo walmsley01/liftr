@@ -781,3 +781,59 @@ html, body {
   padding: 12px 14px; outline: none;
 }
 .form-input:focus { border-color: var(--accent); }
+
+/* ── Exercise name row + swap button ── */
+.ex-name-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.swap-btn {
+  flex-shrink: 0; width: 28px; height: 28px; margin-top: 2px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--r-md); color: var(--text-3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: color 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.swap-btn:active { transform: scale(0.88); color: var(--accent); border-color: var(--accent); }
+
+/* ── Add / remove set controls ── */
+.set-controls {
+  display: flex; gap: 8px; padding: 4px 16px 14px;
+}
+.set-ctrl-btn {
+  flex: 1; padding: 8px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  color: var(--text-3); font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: color 0.15s, border-color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.set-ctrl-btn:active { transform: scale(0.96); }
+.set-ctrl-add { color: var(--accent); border-color: rgba(34,197,94,0.3); }
+.set-ctrl-add:active { border-color: var(--accent); }
+
+/* ── Exercise vault (swap sheet) ── */
+.vault-search-wrap { padding: 0 0 12px; position: sticky; top: 0; background: var(--sheet-bg, var(--surface)); z-index: 1; }
+.vault-search {
+  width: 100%; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--r-full);
+  color: var(--text); font-family: inherit; font-size: 15px;
+  padding: 10px 16px; outline: none; box-sizing: border-box;
+}
+.vault-search:focus { border-color: var(--accent); }
+.vault-group { margin-bottom: 18px; }
+.vault-group-label {
+  font-size: 11px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 0 0 8px;
+}
+.vault-item {
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  background: none; border: none; border-bottom: 1px solid var(--border);
+  color: var(--text); font-family: inherit; font-size: 15px; font-weight: 500;
+  padding: 12px 4px; cursor: pointer; text-align: left;
+  transition: color 0.12s; -webkit-tap-highlight-color: transparent;
+}
+.vault-item:active { color: var(--accent); }
+.vault-tag {
+  font-size: 11px; font-weight: 600; color: var(--text-3);
+  background: var(--surface-2); border-radius: var(--r-full);
+  padding: 2px 7px;
+}

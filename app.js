@@ -1,4 +1,110 @@
 /* ============================================================
+   Section 0: Exercise Vault
+   ============================================================ */
+
+const EXERCISE_VAULT = [
+  { group: 'Chest', exercises: [
+    { name:'Barbell bench press',      trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Incline barbell press',    trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Decline barbell press',    trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Dumbbell bench press',     trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Incline dumbbell press',   trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Cable fly',                trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Pec deck',                 trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Chest dips',               trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Push-ups',                 trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Close-grip push-up',       trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Chest press machine',      trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Back', exercises: [
+    { name:'Pull-ups',                 trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Chin-ups',                 trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Barbell row',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Dumbbell row',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Seated cable row',         trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Lat pulldown',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'T-bar row',                trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Meadows row',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Face pulls',               trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Straight-arm pulldown',    trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Rack pull',                trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Shoulders', exercises: [
+    { name:'Barbell overhead press',   trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Dumbbell overhead press',  trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Arnold press',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Dumbbell lateral raise',   trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Cable lateral raise',      trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Front raise',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Rear delt fly',            trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Machine shoulder press',   trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Upright row',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Biceps', exercises: [
+    { name:'Barbell curl',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Dumbbell curl',            trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Hammer curl',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Incline curl',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Preacher curl',            trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Cable curl',               trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'EZ bar curl',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Concentration curl',       trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Spider curl',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Triceps', exercises: [
+    { name:'Skull crushers',           trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Close-grip bench press',   trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Tricep rope pushdown',     trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Tricep bar pushdown',      trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Overhead tricep extension',trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Tricep dips',              trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Diamond push-up',          trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Kickback',                 trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+  ]},
+  { group: 'Legs', exercises: [
+    { name:'Barbell squat',            trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Front squat',              trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Hack squat',               trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Leg press',                trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Romanian deadlift',        trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Sumo deadlift',            trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Bulgarian split squat',    trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Walking lunges',           trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Goblet squat',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Leg curl',                 trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Leg extension',            trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Hip thrust',               trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Banded clamshell',         trackWeight:false, increment:0,   repsUnit:'reps', perSide:true  },
+    { name:'Nordic curl',              trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Step-ups',                 trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:true  },
+    { name:'Single-leg calf raise',    trackWeight:false, increment:0,   repsUnit:'reps', perSide:true  },
+    { name:'Standing calf raise',      trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Seated calf raise',        trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Core', exercises: [
+    { name:'Plank',                    trackWeight:false, increment:0,   repsUnit:'secs', perSide:false },
+    { name:'Copenhagen plank',         trackWeight:false, increment:0,   repsUnit:'secs', perSide:true  },
+    { name:'Dead bug',                 trackWeight:false, increment:0,   repsUnit:'reps', perSide:true  },
+    { name:'Ab wheel rollout',         trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Cable crunch',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Hanging leg raise',        trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Leg raises',               trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Russian twists',           trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Crunches',                 trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+    { name:'Pallof press',             trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Sit-ups',                  trackWeight:false, increment:0,   repsUnit:'reps', perSide:false },
+  ]},
+  { group: 'Full Body', exercises: [
+    { name:'Conventional deadlift',    trackWeight:true,  increment:5,   repsUnit:'reps', perSide:false },
+    { name:'Power clean',              trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Kettlebell swing',         trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:"Farmer's carry",           trackWeight:true,  increment:2.5, repsUnit:'dist', perSide:false },
+    { name:'Thruster',                 trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+    { name:'Clean and press',          trackWeight:true,  increment:2.5, repsUnit:'reps', perSide:false },
+  ]},
+];
+
+/* ============================================================
    Section 1: Programme Data
    ============================================================ */
 
@@ -502,8 +608,9 @@ function renderWorkout(dayNum) {
 
 function buildExercisePanel(ex) {
   const draftEx = state.draft?.exercises[ex.id];
-  const doneSets = draftEx ? draftEx.sets.filter(s => s !== null).length : 0;
-  const allDone  = doneSets === ex.sets;
+  const doneSets  = draftEx ? draftEx.sets.filter(s => s !== null).length : 0;
+  const totalSets = draftEx ? draftEx.sets.length : ex.sets;
+  const allDone   = totalSets > 0 && doneSets === totalSets;
 
   const suggestion = getSuggestedWeight(ex.id);
   let hintHTML = '';
@@ -540,21 +647,35 @@ function buildExercisePanel(ex) {
       </button>` : ''}
     </div>` : '';
 
-  const setRows = Array.from({ length: ex.sets }, (_, i) => buildSetRow(ex, i, draftEx)).join('');
+  const numSetsForRows = draftEx ? draftEx.sets.length : ex.sets;
+  const setRows = Array.from({ length: numSetsForRows }, (_, i) => buildSetRow(ex, i, draftEx)).join('');
   const repLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
+
+  const numSets = draftEx ? draftEx.sets.length : ex.sets;
+  const setControls = `
+    <div class="set-controls">
+      <button class="set-ctrl-btn" data-action="remove-set" data-ex-id="${ex.id}">− Remove set</button>
+      <button class="set-ctrl-btn set-ctrl-add" data-action="add-set" data-ex-id="${ex.id}">+ Add set</button>
+    </div>`;
 
   return `
     <div class="ex-panel${allDone ? ' all-done' : ''}" id="ex-panel-${ex.id}">
       <div class="ex-panel-header">
-        <div class="ex-name">${ex.name}${ex.perSide ? ' <span style="font-size:12px;font-weight:500;color:var(--text-3)">(each side)</span>' : ''}</div>
+        <div class="ex-name-row">
+          <div class="ex-name">${ex.name}${ex.perSide ? ' <span style="font-size:12px;font-weight:500;color:var(--text-3)">(each side)</span>' : ''}</div>
+          <button class="swap-btn" data-action="swap-exercise" data-ex-id="${ex.id}" title="Swap exercise">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+          </button>
+        </div>
         <div class="ex-meta">
           <span class="tag">${ex.muscle}</span>
-          <span class="ex-meta-text">${ex.sets} sets · ${ex.repsDisplay} ${repLabel}</span>
+          <span class="ex-meta-text">${numSets} sets · ${ex.repsDisplay} ${repLabel}</span>
         </div>
         ${ex.notes ? `<div class="ex-note">${ex.notes}</div>` : ''}
       </div>
       ${weightRow}
       <div class="sets-area">${setRows}</div>
+      ${setControls}
     </div>`;
 }
 
@@ -1209,6 +1330,82 @@ function initEvents() {
   });
 }
 
+function openExerciseSwap(exId) {
+  const renderList = (query) => {
+    const q = query.toLowerCase().trim();
+    return EXERCISE_VAULT.map((group, gi) => {
+      const matches = group.exercises
+        .map((ex, ei) => ({ ex, ei }))
+        .filter(({ ex }) => !q || ex.name.toLowerCase().includes(q));
+      if (!matches.length) return '';
+      return `
+        <div class="vault-group">
+          <div class="vault-group-label">${group.group}</div>
+          ${matches.map(({ ex, ei }) => `
+            <button class="vault-item" data-action="pick-exercise" data-ex-id="${exId}" data-group-idx="${gi}" data-ex-idx="${ei}">
+              ${ex.name}
+              ${ex.perSide ? '<span class="vault-tag">each side</span>' : ''}
+              ${ex.trackWeight ? '' : '<span class="vault-tag">bodyweight</span>'}
+            </button>`).join('')}
+        </div>`;
+    }).join('');
+  };
+
+  openSheet({
+    title: 'Swap Exercise',
+    html: `
+      <div class="vault-search-wrap">
+        <input id="vault-search" class="vault-search" type="text" placeholder="Search exercises…" autocomplete="off" />
+      </div>
+      <div id="vault-list">${renderList('')}</div>`,
+    onOpen: () => {
+      const input = document.getElementById('vault-search');
+      const list  = document.getElementById('vault-list');
+      input?.addEventListener('input', () => { list.innerHTML = renderList(input.value); });
+      input?.focus();
+    },
+  });
+}
+
+function swapExercise(oldExId, vaultEx) {
+  if (!state.draft?.exercises[oldExId]) return;
+  const currentSets = state.draft.exercises[oldExId].sets.length;
+  const newId = 'custom_' + Date.now();
+  const newEx = {
+    id: newId,
+    name: vaultEx.name,
+    sets: currentSets,
+    repsMin: 8, repsMax: 12, repsDisplay: '8–12',
+    muscle: '', notes: '',
+    increment: vaultEx.increment,
+    trackWeight: vaultEx.trackWeight,
+    perSide: vaultEx.perSide,
+    repsUnit: vaultEx.repsUnit,
+  };
+
+  // Replace in PROGRAMME day so buildExercisePanel can find it
+  const day = PROGRAMME.find(d => d.day === state.draft.day);
+  if (!day) return;
+  const idx = day.exercises.findIndex(e => e.id === oldExId);
+  if (idx === -1) return;
+  day.exercises[idx] = newEx;
+
+  // Migrate draft
+  const oldDraftEx = state.draft.exercises[oldExId];
+  delete state.draft.exercises[oldExId];
+  state.draft.exercises[newId] = { weight: oldDraftEx.weight, sets: Array(currentSets).fill(null) };
+  saveDraft(state.draft);
+
+  // Re-render the panel in-place
+  const oldPanel = document.getElementById(`ex-panel-${oldExId}`);
+  if (oldPanel) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = buildExercisePanel(newEx);
+    oldPanel.replaceWith(tmp.firstElementChild);
+    attachWeightInputListener(document.querySelector(`[data-weight-input="${newId}"]`), newId);
+  }
+}
+
 function handleClick(e) {
   const target = e.target.closest('[data-action]');
   if (!target) return;
@@ -1296,6 +1493,35 @@ function handleClick(e) {
       state.plateCalcWeight = Math.round((state.plateCalcWeight + step) * 10) / 10;
       document.getElementById('plate-target-weight').textContent = `${state.plateCalcWeight}${unit}`;
       document.getElementById('plate-calc-body').innerHTML = renderPlateCalcContent(state.plateCalcWeight, unit);
+      break;
+    }
+    case 'add-set': {
+      if (!state.draft?.exercises[exId]) break;
+      state.draft.exercises[exId].sets.push(null);
+      saveDraft(state.draft);
+      refreshExercisePanel(exId);
+      updateSaveButton();
+      break;
+    }
+    case 'remove-set': {
+      if (!state.draft?.exercises[exId]) break;
+      const sets = state.draft.exercises[exId].sets;
+      if (sets.length <= 1) break;
+      sets.pop();
+      saveDraft(state.draft);
+      refreshExercisePanel(exId);
+      updateSaveButton();
+      break;
+    }
+    case 'swap-exercise':
+      openExerciseSwap(exId);
+      break;
+    case 'pick-exercise': {
+      const groupIdx = parseInt(target.dataset.groupIdx);
+      const exIdx    = parseInt(target.dataset.exIdx);
+      const picked   = EXERCISE_VAULT[groupIdx].exercises[exIdx];
+      swapExercise(exId, picked);
+      closeSheet();
       break;
     }
     case 'use-plate-weight': {
