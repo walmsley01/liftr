@@ -123,7 +123,7 @@ let PROGRAMME = [
   {
     day: 2, name: 'Pull',
     exercises: [
-      { id:'pu1', name:'Pull-ups',                    sets:4, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Lats',                  notes:'Full ROM – assisted if needed to hit reps cleanly',            increment:0,   trackWeight:false, perSide:false, repsUnit:'reps' },
+      { id:'pu1', name:'Pull-ups',                    sets:4, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Lats',                  notes:'Full ROM – assisted if needed to hit reps cleanly',            increment:0,   trackWeight:true,  perSide:false, repsUnit:'reps' },
       { id:'pu2', name:'Seated cable row',             sets:4, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Mid back / rhomboids',  notes:'Neutral grip – drive elbows back – pause at contraction',      increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
       { id:'pu3', name:'Meadows row',                  sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12 ea', muscle:'Lats / mid back',       notes:'Landmine unilateral – keep chest tall – avoid hip rotation',   increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
       { id:'pu4', name:'Face pulls',                   sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20',    muscle:'Rear delts',            notes:'Rope to forehead – elbows high',                               increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
@@ -686,7 +686,8 @@ function buildSetRow(ex, i, draftEx) {
     // Support both legacy (plain number) and new ({reps, weight}) format
     const reps = (typeof logged === 'object') ? logged.reps : logged;
     const w    = (typeof logged === 'object') ? logged.weight : draftEx.weight;
-    const weightText = ex.trackWeight && w != null ? ` · ${w}${getSettings().unit}` : '';
+    const wLabel = (typeof logged === 'object') ? logged.weightLabel : null;
+    const weightText = ex.trackWeight ? (wLabel === 'BW' || w === 0 ? ' · BW' : (w != null ? ` · ${w}${getSettings().unit}` : '')) : '';
     const repsLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
     const repsText  = ex.repsUnit === 'dist' ? '30m ✓' : `${reps} ${repsLabel}`;
     return `
@@ -720,9 +721,9 @@ function buildSetRow(ex, i, draftEx) {
       <span class="set-num">Set ${i + 1}</span>
       ${ex.trackWeight ? `
       <div class="set-weight-inline">
-        <input class="set-weight-input" type="number" min="0" max="500" step="${unit === 'kg' ? 2.5 : 5}"
-          value="${defaultWeight}"
-          placeholder="—"
+        <input class="set-weight-input" type="text" inputmode="decimal"
+          value="${defaultWeight || ''}"
+          placeholder="BW"
           data-set-weight-input="${ex.id}-${i}" />
         <span class="set-weight-unit">${unit}</span>
       </div>` : ''}
@@ -777,12 +778,18 @@ function logSet(exId, setIdx) {
 
   const setWInput = document.querySelector(`[data-set-weight-input="${exId}-${setIdx}"]`);
   let weight = state.draft.exercises[exId].weight ?? 0;
-  if (setWInput && setWInput.value !== '') {
-    const v = parseFloat(setWInput.value);
-    if (!isNaN(v)) weight = v;
+  let weightLabel = null;
+  if (setWInput) {
+    const raw = setWInput.value.trim();
+    if (/^bw$/i.test(raw) || raw === '') {
+      weight = 0; weightLabel = 'BW';
+    } else {
+      const v = parseFloat(raw);
+      if (!isNaN(v)) weight = v;
+    }
   }
 
-  state.draft.exercises[exId].sets[setIdx] = ex.trackWeight ? { reps, weight } : reps;
+  state.draft.exercises[exId].sets[setIdx] = ex.trackWeight ? { reps, weight, weightLabel } : reps;
   saveDraft(state.draft);
   navigator.vibrate?.(30);
   refreshExercisePanel(exId);
@@ -979,7 +986,7 @@ function buildHistoryCard(log) {
         const pills   = exSets.map((s, i) => {
           const rLabel = ex?.repsUnit === 'secs' ? 's' : ex?.repsUnit === 'dist' ? '✓' : '';
           const rText  = ex?.repsUnit === 'dist' ? '30m ✓' : `${s.reps}${rLabel}`;
-          const wText  = hasW && s.weight ? ` @ ${s.weight}${getSettings().unit}` : '';
+          const wText  = hasW ? (s.weightLabel === 'BW' || s.weight === 0 ? ' @ BW' : (s.weight ? ` @ ${s.weight}${getSettings().unit}` : '')) : '';
           return `<span class="history-set-pill">${rText}${wText}</span>`;
         }).join('');
         const chartBtn = ex?.trackWeight ? `
