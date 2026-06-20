@@ -73,9 +73,9 @@ html, body {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  padding: 0 12px calc(env(safe-area-inset-top, 0px) + 14px) 8px;
+  padding: env(safe-area-inset-top, 0px) 12px 0 8px;
   z-index: 100;
 }
 #workout-topbar.hidden { display: none; }
