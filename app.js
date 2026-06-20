@@ -723,7 +723,7 @@ function buildSetRow(ex, i, draftEx) {
       <div class="set-weight-inline">
         <input class="set-weight-input" type="text" inputmode="decimal"
           value="${defaultWeight || ''}"
-          placeholder="BW"
+          placeholder="—"
           data-set-weight-input="${ex.id}-${i}" />
         <span class="set-weight-unit">${unit}</span>
       </div>` : ''}
@@ -781,7 +781,7 @@ function logSet(exId, setIdx) {
   let weightLabel = null;
   if (setWInput) {
     const raw = setWInput.value.trim();
-    if (/^bw$/i.test(raw) || raw === '') {
+    if (/^bw$/i.test(raw)) {
       weight = 0; weightLabel = 'BW';
     } else {
       const v = parseFloat(raw);
