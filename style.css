@@ -50,13 +50,13 @@ html, body {
   height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 34px) + 8px);
   scrollbar-width: none;
 }
 #main-content::-webkit-scrollbar { display: none; }
 #main-content.workout-mode {
-  padding-top: calc(var(--top-h) + env(safe-area-inset-top, 0px));
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  padding-top: calc(var(--top-h) + env(safe-area-inset-top, 44px));
+  padding-bottom: calc(env(safe-area-inset-bottom, 34px) + 24px);
 }
 
 /* ── Workout top bar ── */
@@ -67,7 +67,7 @@ html, body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: calc(var(--top-h) + env(safe-area-inset-top, 0px));
+  height: calc(var(--top-h) + env(safe-area-inset-top, 44px));
   background: rgba(8,8,8,0.75);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -75,7 +75,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: env(safe-area-inset-top, 0px) 12px 0 8px;
+  padding: env(safe-area-inset-top, 44px) 12px 0 8px;
   z-index: 100;
 }
 #workout-topbar.hidden { display: none; }
@@ -118,8 +118,8 @@ html, body {
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 34px));
+  padding-bottom: env(safe-area-inset-bottom, 34px);
   background: rgba(17,17,17,0.8);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -584,7 +584,7 @@ html, body {
   max-height: 85vh;
   display: flex; flex-direction: column;
   transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 34px);
 }
 #sheet-overlay.open #sheet { transform: translateX(-50%) translateY(0); }
 
@@ -608,7 +608,7 @@ html, body {
 /* ── Toast ── */
 #toast-container {
   position: fixed;
-  bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--nav-h) + 12px + env(safe-area-inset-bottom, 34px));
   left: 50%; transform: translateX(-50%);
   width: calc(100% - 32px); max-width: 400px;
   z-index: 300;
