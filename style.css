@@ -870,3 +870,56 @@ html, body {
 .set-weight-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 .set-weight-input:focus { border-color: var(--accent); color: var(--text); }
 .set-weight-unit { font-size: 11px; color: var(--text-3); }
+
+/* ── Add day card ── */
+.add-day-card {
+  width: 100%; padding: 14px;
+  background: none; border: 1px dashed var(--border);
+  border-radius: var(--r-xl); color: var(--text-3);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.add-day-card:active { color: var(--accent); border-color: var(--accent); border-style: solid; }
+
+/* ── Editable rep range button ── */
+.edit-reps-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-2); font-family: inherit; font-size: 12px;
+  padding: 2px 6px; border-radius: var(--r-sm);
+  transition: color 0.12s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.edit-reps-btn:active { color: var(--accent); background: var(--accent-dim); }
+
+/* ── Per-exercise rest button ── */
+.ex-rest-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-3); font-family: inherit; font-size: 12px;
+  padding: 2px 6px; border-radius: var(--r-sm);
+  transition: color 0.12s, background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  margin-left: auto;
+}
+.ex-rest-btn:active { color: var(--accent); background: var(--accent-dim); }
+
+/* ── Session notes ── */
+.session-notes-input {
+  width: 100%; min-height: 72px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); color: var(--text);
+  font-family: inherit; font-size: 14px; line-height: 1.6;
+  padding: 12px 14px; outline: none; resize: none;
+  -webkit-appearance: none;
+}
+.session-notes-input:focus { border-color: var(--accent); }
+.session-notes-input::placeholder { color: var(--text-3); }
+
+/* ── History notes ── */
+.history-notes {
+  font-size: 13px; color: var(--text-2); line-height: 1.6;
+  padding: 10px 14px; margin: 10px 0 4px;
+  background: var(--surface-2); border-radius: var(--r-md);
+  white-space: pre-wrap;
+}

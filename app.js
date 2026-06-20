@@ -108,7 +108,7 @@ const EXERCISE_VAULT = [
    Section 1: Programme Data
    ============================================================ */
 
-const PROGRAMME = [
+let PROGRAMME = [
   {
     day: 1, name: 'Push',
     exercises: [
@@ -160,7 +160,7 @@ const PROGRAMME = [
    Section 2: Storage
    ============================================================ */
 
-const KEYS = { logs: 'lt_logs', settings: 'lt_settings', draft: 'lt_draft', prs: 'lt_prs' };
+const KEYS = { logs: 'lt_logs', settings: 'lt_settings', draft: 'lt_draft', prs: 'lt_prs', programme: 'lt_programme' };
 
 const store = {
   get(k)      { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -169,6 +169,7 @@ const store = {
 };
 
 function getLogs()         { return store.get(KEYS.logs)     || []; }
+function saveProgramme()   { store.set(KEYS.programme, PROGRAMME); }
 function saveLogs(a)       { store.set(KEYS.logs, a); }
 function getSettings()     { return Object.assign({ unit: 'kg', restDuration: 120 }, store.get(KEYS.settings) || {}); }
 function saveSettings(o)   { store.set(KEYS.settings, o); }
@@ -278,7 +279,8 @@ const timer = { id: null, remaining: 0, targetExId: null };
 
 function startRestTimer(exId) {
   clearRestTimer();
-  const duration = getSettings().restDuration;
+  const exObj = findExercise(exId);
+  const duration = exObj?.restDuration ?? getSettings().restDuration;
   timer.remaining = duration;
   timer.targetExId = exId;
 
@@ -324,7 +326,8 @@ function tickRestTimer() {
 
   secEl.textContent = timer.remaining;
   if (ringEl) {
-    const duration = getSettings().restDuration;
+    const exObj2 = findExercise(timer.targetExId);
+    const duration = exObj2?.restDuration ?? getSettings().restDuration;
     const offset = 75.4 * (1 - timer.remaining / duration);
     ringEl.style.strokeDashoffset = offset;
   }
@@ -495,6 +498,12 @@ function renderHome() {
     </div>
     ${resumeHTML}
     ${PROGRAMME.map(day => buildDayCard(day)).join('')}
+    <div style="padding:0 16px 8px;">
+      <button class="add-day-card" data-action="add-day">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New workout
+      </button>
+    </div>
     <div style="height:8px;"></div>
   `;
 }
@@ -602,6 +611,9 @@ function renderWorkout(dayNum) {
   mc.innerHTML = `
     <div style="padding:16px 0 0;">
       ${day.exercises.map(ex => buildExercisePanel(ex)).join('')}
+      <div style="padding:0 16px 12px;">
+        <textarea class="session-notes-input" placeholder="Session notes…" data-session-notes>${state.draft?.notes ?? ''}</textarea>
+      </div>
       <div id="add-exercise-row" style="padding:0 16px 24px;">
         <button class="add-ex-btn" data-action="add-exercise">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -678,8 +690,9 @@ function buildExercisePanel(ex) {
           </div>
         </div>
         <div class="ex-meta">
-          <span class="tag">${ex.muscle}</span>
-          <span class="ex-meta-text">${numSets} sets · ${ex.repsDisplay} ${repLabel}</span>
+          ${ex.muscle ? `<span class="tag">${ex.muscle}</span>` : ''}
+          <button class="edit-reps-btn" data-action="edit-reps" data-ex-id="${ex.id}">${numSets} sets · ${ex.repsDisplay} ${repLabel}</button>
+          <button class="ex-rest-btn" data-action="edit-rest" data-ex-id="${ex.id}">⏱ ${ex.restDuration ?? getSettings().restDuration}s</button>
         </div>
         ${ex.notes ? `<div class="ex-note">${ex.notes}</div>` : ''}
       </div>
@@ -868,6 +881,7 @@ function saveWorkout() {
     startedAt: state.draft.startedAt,
     sets,
     exerciseNames,
+    notes: state.draft.notes ?? '',
   };
   const logs = getLogs();
   logs.push(log);
@@ -1005,6 +1019,7 @@ function buildHistoryCard(log) {
           <div class="history-sets-row">${pills}</div>
         </div>`;
       }).join('')}
+      ${log.notes ? `<div class="history-notes">${log.notes}</div>` : ''}
       <button class="history-delete-btn" data-action="delete-log" data-log-id="${log.id}">Delete workout</button>
     </div>` : '';
 
@@ -1213,7 +1228,7 @@ function renderSettings() {
 }
 
 function handleExport() {
-  const data = { logs: getLogs(), settings: getSettings(), exportedAt: new Date().toISOString() };
+  const data = { logs: getLogs(), settings: getSettings(), programme: PROGRAMME, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -1244,6 +1259,7 @@ function handleImport(file) {
           document.getElementById('confirm-import-btn').addEventListener('click', () => {
             saveLogs(data.logs);
             if (data.settings) saveSettings(data.settings);
+            if (data.programme) { PROGRAMME = data.programme; saveProgramme(); }
             rebuildPRsFromLogs();
             closeSheet();
             showToast('Data imported', 'success');
@@ -1346,6 +1362,13 @@ function initEvents() {
     if (btn) navigate(btn.dataset.nav);
   });
 
+  document.getElementById('main-content').addEventListener('input', e => {
+    if (e.target.dataset.sessionNotes !== undefined && state.draft) {
+      state.draft.notes = e.target.value;
+      saveDraft(state.draft);
+    }
+  });
+
   document.getElementById('main-content').addEventListener('change', e => {
     const inp = e.target.closest('[data-weight-input]');
     if (!inp) return;
@@ -1386,7 +1409,7 @@ function openExerciseSwap(exId) {
   };
 
   openSheet({
-    title: 'Swap Exercise',
+    title: exId ? 'Swap Exercise' : 'Add Exercise',
     html: `
       <div class="vault-search-wrap">
         <input id="vault-search" class="vault-search" type="text" placeholder="Search exercises…" autocomplete="off" />
@@ -1428,6 +1451,11 @@ function addExercise(vaultEx) {
   addRow?.parentElement.insertBefore(panel, addRow);
   const wInput = panel.querySelector(`[data-weight-input="${newId}"]`);
   if (wInput) attachWeightInputListener(wInput, newId);
+
+  promptSavePermanent(
+    `Add <strong style="color:var(--text)">${newEx.name}</strong> to this workout permanently for future sessions?`,
+    saveProgramme
+  );
 }
 
 function swapExercise(oldExId, vaultEx) {
@@ -1467,6 +1495,40 @@ function swapExercise(oldExId, vaultEx) {
     oldPanel.replaceWith(tmp.firstElementChild);
     attachWeightInputListener(document.querySelector(`[data-weight-input="${newId}"]`), newId);
   }
+
+  promptSavePermanent(
+    `Keep <strong style="color:var(--text)">${newEx.name}</strong> as a permanent swap for future sessions?`,
+    saveProgramme
+  );
+}
+
+function promptSavePermanent(title, onSave) {
+  openSheet({
+    title: 'Save change?',
+    html: `
+      <div style="color:var(--text-2);font-size:14px;margin-bottom:20px;line-height:1.7;">${title}</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" style="flex:1;border:1px solid var(--border);border-radius:var(--r-full);" data-action="close-sheet">Just today</button>
+        <button class="btn-primary-full" style="flex:1;" id="save-permanent-btn">Save for future</button>
+      </div>`,
+    onOpen: () => {
+      document.getElementById('save-permanent-btn').addEventListener('click', () => {
+        onSave();
+        closeSheet();
+      });
+    },
+  });
+}
+
+function applyExerciseChange(exId, changes) {
+  const ex = findExercise(exId);
+  if (!ex) return;
+  Object.assign(ex, changes);
+  refreshExercisePanel(exId);
+  promptSavePermanent(
+    `Keep these changes to <strong style="color:var(--text)">${ex.name}</strong> for future sessions too?`,
+    saveProgramme
+  );
 }
 
 function handleClick(e) {
@@ -1560,6 +1622,8 @@ function handleClick(e) {
     }
     case 'remove-exercise': {
       if (!state.draft?.exercises[exId]) break;
+      const removedEx = findExercise(exId);
+      const removedName = removedEx?.name ?? exId;
       delete state.draft.exercises[exId];
       const day2 = PROGRAMME.find(d => d.day === state.draft?.day) ||
                    PROGRAMME.find(d => d.exercises.some(e => e.id === exId));
@@ -1567,11 +1631,112 @@ function handleClick(e) {
       document.getElementById(`ex-panel-${exId}`)?.remove();
       saveDraft(state.draft);
       updateSaveButton();
+      promptSavePermanent(
+        `Remove <strong style="color:var(--text)">${removedName}</strong> from this workout permanently?`,
+        saveProgramme
+      );
       break;
     }
     case 'add-exercise':
       openExerciseSwap(null);
       break;
+    case 'add-day':
+      openSheet({
+        title: 'New Workout',
+        html: `
+          <div class="form-group">
+            <label class="form-label">Workout name</label>
+            <input class="form-input" id="new-day-name" placeholder="e.g. Arms, Cardio…" autocomplete="off" />
+          </div>
+          <button class="btn-primary-full" id="create-day-btn">Create</button>`,
+        onOpen: () => {
+          const inp = document.getElementById('new-day-name');
+          const btn = document.getElementById('create-day-btn');
+          inp?.focus();
+          btn.addEventListener('click', () => {
+            const name = inp.value.trim();
+            if (!name) return;
+            const nextDay = Math.max(...PROGRAMME.map(d => d.day)) + 1;
+            PROGRAMME.push({ day: nextDay, name, exercises: [] });
+            saveProgramme();
+            closeSheet();
+            renderHome();
+          });
+        },
+      });
+      break;
+    case 'edit-reps': {
+      const editEx = findExercise(exId);
+      if (!editEx) break;
+      const curMin = editEx.repsMin; const curMax = editEx.repsMax;
+      openSheet({
+        title: 'Edit Rep Range',
+        html: `
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">${editEx.name}</div>
+          <div style="display:flex;gap:24px;margin-bottom:24px;">
+            <div style="flex:1;">
+              <div class="form-label" style="margin-bottom:8px;">Min reps</div>
+              <div class="stepper">
+                <button class="step-btn" id="reps-min-minus">−</button>
+                <input class="step-input" id="reps-min-val" type="number" min="1" max="99" value="${curMin}" />
+                <button class="step-btn" id="reps-min-plus">+</button>
+              </div>
+            </div>
+            <div style="flex:1;">
+              <div class="form-label" style="margin-bottom:8px;">Max reps</div>
+              <div class="stepper">
+                <button class="step-btn" id="reps-max-minus">−</button>
+                <input class="step-input" id="reps-max-val" type="number" min="1" max="99" value="${curMax}" />
+                <button class="step-btn" id="reps-max-plus">+</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn-primary-full" id="save-reps-btn">Save</button>`,
+        onOpen: () => {
+          const minI = document.getElementById('reps-min-val');
+          const maxI = document.getElementById('reps-max-val');
+          document.getElementById('reps-min-minus').addEventListener('click', () => { minI.value = Math.max(1, parseInt(minI.value)-1); });
+          document.getElementById('reps-min-plus').addEventListener('click',  () => { minI.value = Math.min(99, parseInt(minI.value)+1); });
+          document.getElementById('reps-max-minus').addEventListener('click', () => { maxI.value = Math.max(1, parseInt(maxI.value)-1); });
+          document.getElementById('reps-max-plus').addEventListener('click',  () => { maxI.value = Math.min(99, parseInt(maxI.value)+1); });
+          document.getElementById('save-reps-btn').addEventListener('click', () => {
+            const mn = Math.max(1, parseInt(minI.value)||1);
+            const mx = Math.max(mn, parseInt(maxI.value)||mn);
+            const display = mn === mx ? `${mn}` : `${mn}–${mx}`;
+            closeSheet();
+            applyExerciseChange(exId, { repsMin: mn, repsMax: mx, repsDisplay: display });
+          });
+        },
+      });
+      break;
+    }
+    case 'edit-rest': {
+      const restEx = findExercise(exId);
+      if (!restEx) break;
+      const curRest = restEx.restDuration ?? getSettings().restDuration;
+      openSheet({
+        title: 'Rest Timer',
+        html: `
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">${restEx.name}</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:20px;margin-bottom:24px;">
+            <button class="step-btn" style="width:52px;height:52px;" id="rest-edit-minus">−</button>
+            <span style="font-size:28px;font-weight:700;min-width:72px;text-align:center;font-variant-numeric:tabular-nums;" id="rest-edit-val">${curRest}s</span>
+            <button class="step-btn" style="width:52px;height:52px;" id="rest-edit-plus">+</button>
+          </div>
+          <button class="btn-primary-full" id="save-rest-btn">Save</button>`,
+        onOpen: () => {
+          let val = curRest;
+          const display = document.getElementById('rest-edit-val');
+          document.getElementById('rest-edit-minus').addEventListener('click', () => { val = Math.max(30, val-30); display.textContent = val+'s'; });
+          document.getElementById('rest-edit-plus').addEventListener('click',  () => { val = Math.min(600, val+30); display.textContent = val+'s'; });
+          document.getElementById('save-rest-btn').addEventListener('click', () => {
+            closeSheet();
+            applyExerciseChange(exId, { restDuration: val });
+          });
+        },
+      });
+      break;
+    }
     case 'add-set': {
       if (!state.draft?.exercises[exId]) break;
       state.draft.exercises[exId].sets.push(null);
@@ -1624,6 +1789,8 @@ function handleClick(e) {
    ============================================================ */
 
 function init() {
+  const savedProgramme = store.get(KEYS.programme);
+  if (savedProgramme) PROGRAMME = savedProgramme;
   const savedDraft = getDraft();
   if (savedDraft) state.draft = savedDraft;
   initEvents();
