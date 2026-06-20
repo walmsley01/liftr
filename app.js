@@ -602,7 +602,12 @@ function renderWorkout(dayNum) {
   mc.innerHTML = `
     <div style="padding:16px 0 0;">
       ${day.exercises.map(ex => buildExercisePanel(ex)).join('')}
-      <div style="height:16px;"></div>
+      <div id="add-exercise-row" style="padding:0 16px 24px;">
+        <button class="add-ex-btn" data-action="add-exercise">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add exercise
+        </button>
+      </div>
     </div>`;
 }
 
@@ -663,9 +668,14 @@ function buildExercisePanel(ex) {
       <div class="ex-panel-header">
         <div class="ex-name-row">
           <div class="ex-name">${ex.name}${ex.perSide ? ' <span style="font-size:12px;font-weight:500;color:var(--text-3)">(each side)</span>' : ''}</div>
-          <button class="swap-btn" data-action="swap-exercise" data-ex-id="${ex.id}" title="Swap exercise">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
-          </button>
+          <div style="display:flex;gap:6px;">
+            <button class="swap-btn" data-action="swap-exercise" data-ex-id="${ex.id}" title="Swap exercise">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+            </button>
+            <button class="swap-btn remove-ex-btn" data-action="remove-exercise" data-ex-id="${ex.id}" title="Remove exercise">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
         </div>
         <div class="ex-meta">
           <span class="tag">${ex.muscle}</span>
@@ -683,10 +693,12 @@ function buildSetRow(ex, i, draftEx) {
   const logged = draftEx?.sets[i] ?? null;
 
   if (logged !== null) {
-    const w = draftEx.weight;
-    const weightText = ex.trackWeight && w !== null ? ` · ${w}${getSettings().unit}` : '';
+    // Support both legacy (plain number) and new ({reps, weight}) format
+    const reps = (typeof logged === 'object') ? logged.reps : logged;
+    const w    = (typeof logged === 'object') ? logged.weight : draftEx.weight;
+    const weightText = ex.trackWeight && w != null ? ` · ${w}${getSettings().unit}` : '';
     const repsLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
-    const repsText  = ex.repsUnit === 'dist' ? '30m ✓' : `${logged} ${repsLabel}`;
+    const repsText  = ex.repsUnit === 'dist' ? '30m ✓' : `${reps} ${repsLabel}`;
     return `
       <div class="set-row done" data-ex-id="${ex.id}" data-set-idx="${i}">
         <span class="set-num">Set ${i + 1}</span>
@@ -708,12 +720,22 @@ function buildSetRow(ex, i, draftEx) {
       </div>`;
   }
 
-  const defaultReps = getLastSetReps(ex.id, i) ?? ex.repsMin;
-  const repsLabel   = ex.repsUnit === 'secs' ? 'sec' : 'reps';
+  const defaultReps   = getLastSetReps(ex.id, i) ?? ex.repsMin;
+  const defaultWeight = draftEx?.weight ?? '';
+  const repsLabel     = ex.repsUnit === 'secs' ? 'sec' : 'reps';
+  const unit          = getSettings().unit;
 
   return `
     <div class="set-row" data-ex-id="${ex.id}" data-set-idx="${i}">
       <span class="set-num">Set ${i + 1}</span>
+      ${ex.trackWeight ? `
+      <div class="set-weight-inline">
+        <input class="set-weight-input" type="number" min="0" max="500" step="${unit === 'kg' ? 2.5 : 5}"
+          value="${defaultWeight}"
+          placeholder="—"
+          data-set-weight-input="${ex.id}-${i}" />
+        <span class="set-weight-unit">${unit}</span>
+      </div>` : ''}
       <div class="stepper" style="flex:1;">
         <button class="step-btn" data-action="reps-minus" data-ex-id="${ex.id}" data-set-idx="${i}">−</button>
         <input class="step-input" style="flex:1;width:auto;" type="number" min="1" max="99"
@@ -763,13 +785,19 @@ function logSet(exId, setIdx) {
     reps = parseInt(input?.value) || ex.repsMin;
   }
 
-  const wInput = document.querySelector(`[data-weight-input="${exId}"]`);
-  if (wInput && wInput.value !== '') {
-    const v = parseFloat(wInput.value);
-    if (!isNaN(v)) state.draft.exercises[exId].weight = v;
+  // Per-set weight (falls back to top-level weight input, then existing default)
+  const setWInput = document.querySelector(`[data-set-weight-input="${exId}-${setIdx}"]`);
+  const topWInput = document.querySelector(`[data-weight-input="${exId}"]`);
+  let weight = state.draft.exercises[exId].weight ?? 0;
+  if (setWInput && setWInput.value !== '') {
+    const v = parseFloat(setWInput.value);
+    if (!isNaN(v)) weight = v;
+  } else if (topWInput && topWInput.value !== '') {
+    const v = parseFloat(topWInput.value);
+    if (!isNaN(v)) { weight = v; state.draft.exercises[exId].weight = v; }
   }
 
-  state.draft.exercises[exId].sets[setIdx] = reps;
+  state.draft.exercises[exId].sets[setIdx] = ex.trackWeight ? { reps, weight } : reps;
   saveDraft(state.draft);
   navigator.vibrate?.(30);
   refreshExercisePanel(exId);
@@ -779,7 +807,6 @@ function logSet(exId, setIdx) {
   startRestTimer(exId);
 
   // Check PR
-  const weight = state.draft.exercises[exId].weight;
   if (checkAndRecordPR(exId, weight)) {
     state.sessionPRs.push({ exerciseName: ex.name, weight });
   }
@@ -822,11 +849,16 @@ function updateSaveButton() {
 function saveWorkout() {
   if (!state.draft) return;
   const sets = [];
+  const exerciseNames = {};
   for (const [exId, exData] of Object.entries(state.draft.exercises)) {
-    exData.sets.forEach((reps, i) => {
-      if (reps !== null) {
-        sets.push({ exerciseId: exId, setIndex: i, weight: exData.weight ?? 0, reps });
-      }
+    const ex = findExercise(exId);
+    if (ex) exerciseNames[exId] = ex.name;
+    exData.sets.forEach((s, i) => {
+      if (s === null) return;
+      // Support both legacy (plain number) and new ({reps,weight}) format
+      const reps   = (typeof s === 'object') ? s.reps   : s;
+      const weight = (typeof s === 'object') ? s.weight : (exData.weight ?? 0);
+      sets.push({ exerciseId: exId, setIndex: i, weight, reps });
     });
   }
   const log = {
@@ -835,6 +867,7 @@ function saveWorkout() {
     date: state.draft.date,
     startedAt: state.draft.startedAt,
     sets,
+    exerciseNames,
   };
   const logs = getLogs();
   logs.push(log);
@@ -954,20 +987,21 @@ function buildHistoryCard(log) {
     <div class="history-expand">
       ${exIds.map(eid => {
         const ex      = findExercise(eid);
+        const exName  = log.exerciseNames?.[eid] ?? ex?.name ?? eid;
         const exSets  = log.sets.filter(s => s.exerciseId === eid);
-        const hasW    = ex?.trackWeight;
+        const hasW    = ex?.trackWeight ?? exSets.some(s => s.weight > 0);
         const pills   = exSets.map((s, i) => {
           const rLabel = ex?.repsUnit === 'secs' ? 's' : ex?.repsUnit === 'dist' ? '✓' : '';
           const rText  = ex?.repsUnit === 'dist' ? '30m ✓' : `${s.reps}${rLabel}`;
           const wText  = hasW && s.weight ? ` @ ${s.weight}${getSettings().unit}` : '';
           return `<span class="history-set-pill">${rText}${wText}</span>`;
         }).join('');
-        const chartBtn = ex && ex.trackWeight ? `
+        const chartBtn = ex?.trackWeight ? `
           <button class="chart-icon-btn" data-action="show-chart" data-ex-id="${eid}" title="Progress chart">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </button>` : '';
         return `<div class="history-ex-block">
-          <div class="history-ex-name">${ex ? ex.name : eid} ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscle}</span>` : ''}${chartBtn}</div>
+          <div class="history-ex-name">${exName} ${ex ? `<span class="tag" style="font-size:10px;">${ex.muscle}</span>` : ''}${chartBtn}</div>
           <div class="history-sets-row">${pills}</div>
         </div>`;
       }).join('')}
@@ -1367,6 +1401,35 @@ function openExerciseSwap(exId) {
   });
 }
 
+function addExercise(vaultEx) {
+  if (!state.draft) return;
+  const newId = 'custom_' + Date.now();
+  const newEx = {
+    id: newId,
+    name: vaultEx.name,
+    sets: 3,
+    repsMin: 8, repsMax: 12, repsDisplay: '8–12',
+    muscle: '', notes: '',
+    increment: vaultEx.increment,
+    trackWeight: vaultEx.trackWeight,
+    perSide: vaultEx.perSide,
+    repsUnit: vaultEx.repsUnit,
+  };
+  const day = PROGRAMME.find(d => d.day === state.draft.day);
+  if (!day) return;
+  day.exercises.push(newEx);
+  state.draft.exercises[newId] = { weight: null, sets: Array(3).fill(null) };
+  saveDraft(state.draft);
+
+  const addRow = document.getElementById('add-exercise-row');
+  const tmp = document.createElement('div');
+  tmp.innerHTML = buildExercisePanel(newEx);
+  const panel = tmp.firstElementChild;
+  addRow?.parentElement.insertBefore(panel, addRow);
+  const wInput = panel.querySelector(`[data-weight-input="${newId}"]`);
+  if (wInput) attachWeightInputListener(wInput, newId);
+}
+
 function swapExercise(oldExId, vaultEx) {
   if (!state.draft?.exercises[oldExId]) return;
   const currentSets = state.draft.exercises[oldExId].sets.length;
@@ -1495,6 +1558,20 @@ function handleClick(e) {
       document.getElementById('plate-calc-body').innerHTML = renderPlateCalcContent(state.plateCalcWeight, unit);
       break;
     }
+    case 'remove-exercise': {
+      if (!state.draft?.exercises[exId]) break;
+      delete state.draft.exercises[exId];
+      const day2 = PROGRAMME.find(d => d.day === state.draft?.day) ||
+                   PROGRAMME.find(d => d.exercises.some(e => e.id === exId));
+      if (day2) day2.exercises = day2.exercises.filter(e => e.id !== exId);
+      document.getElementById(`ex-panel-${exId}`)?.remove();
+      saveDraft(state.draft);
+      updateSaveButton();
+      break;
+    }
+    case 'add-exercise':
+      openExerciseSwap(null);
+      break;
     case 'add-set': {
       if (!state.draft?.exercises[exId]) break;
       state.draft.exercises[exId].sets.push(null);
@@ -1520,7 +1597,11 @@ function handleClick(e) {
       const groupIdx = parseInt(target.dataset.groupIdx);
       const exIdx    = parseInt(target.dataset.exIdx);
       const picked   = EXERCISE_VAULT[groupIdx].exercises[exIdx];
-      swapExercise(exId, picked);
+      if (exId) {
+        swapExercise(exId, picked);
+      } else {
+        addExercise(picked);
+      }
       closeSheet();
       break;
     }

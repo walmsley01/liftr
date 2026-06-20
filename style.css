@@ -837,3 +837,36 @@ html, body {
   background: var(--surface-2); border-radius: var(--r-full);
   padding: 2px 7px;
 }
+
+/* ── Remove exercise button ── */
+.remove-ex-btn:active { color: var(--danger) !important; border-color: var(--danger) !important; }
+
+/* ── Add exercise button ── */
+.add-ex-btn {
+  width: 100%; padding: 12px;
+  background: none; border: 1px dashed var(--border);
+  border-radius: var(--r-lg); color: var(--text-3);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.add-ex-btn:active { color: var(--accent); border-color: var(--accent); border-style: solid; }
+
+/* ── Per-set weight inline ── */
+.set-weight-inline {
+  display: flex; align-items: center; gap: 4px;
+  flex-shrink: 0;
+}
+.set-weight-input {
+  width: 52px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--r-sm);
+  color: var(--text-2); font-family: inherit; font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 5px 6px; text-align: center; outline: none;
+  -moz-appearance: textfield;
+}
+.set-weight-input::-webkit-outer-spin-button,
+.set-weight-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.set-weight-input:focus { border-color: var(--accent); color: var(--text); }
+.set-weight-unit { font-size: 11px; color: var(--text-3); }
