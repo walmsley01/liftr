@@ -1,18 +1,13 @@
-const CACHE = 'liftr-v4';
-const ASSETS = [
-  '/liftr/',
-  '/liftr/index.html',
-  '/liftr/app.js',
-  '/liftr/style.css',
-  '/liftr/manifest.json',
-  '/liftr/icon-192x192.png',
-  '/liftr/icon-512x512.png',
+const CACHE = 'liftr-v5';
+const CDN_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(CDN_ASSETS).catch(() => {}))
+  );
   self.skipWaiting();
 });
 
@@ -26,15 +21,24 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if (res.ok && e.request.url.startsWith(self.location.origin)) {
-          caches.open(CACHE).then(c => c.put(e.request, res.clone()));
-        }
+  const url = new URL(e.request.url);
+
+  // CDN assets: cache-first (they're versioned and never change)
+  if (!url.origin.includes(self.location.hostname)) {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
         return res;
-      }).catch(() => cached);
-      return cached || network;
-    })
+      }))
+    );
+    return;
+  }
+
+  // App files: network-first (always get latest, fall back to cache if offline)
+  e.respondWith(
+    fetch(e.request).then(res => {
+      if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+      return res;
+    }).catch(() => caches.match(e.request))
   );
 });
