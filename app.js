@@ -641,29 +641,6 @@ function buildExercisePanel(ex) {
     }
   }
 
-  const currentWeight = draftEx?.weight ?? (suggestion?.weight ?? null);
-  const isBarbell = isBarbellExercise(ex.name);
-
-  const weightRow = ex.trackWeight ? `
-    <div class="weight-row">
-      <span class="weight-label">Weight</span>
-      <div class="stepper">
-        <button class="step-btn" data-action="weight-minus" data-ex-id="${ex.id}">−</button>
-        <input class="step-input" type="number" min="0" max="500" step="${getSettings().unit === 'kg' ? 2.5 : 5}"
-          value="${currentWeight !== null ? currentWeight : ''}"
-          placeholder="—"
-          data-weight-input="${ex.id}" />
-        <button class="step-btn" data-action="weight-plus" data-ex-id="${ex.id}">+</button>
-      </div>
-      <span class="weight-unit">${getSettings().unit}</span>
-      ${hintHTML}
-      ${isBarbell ? `<button class="plate-calc-btn" data-action="open-plate-calc" data-ex-id="${ex.id}" title="Plate calculator">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="2" y1="12" x2="22" y2="12"/><rect x="7" y="9" width="2" height="6" rx="1"/><rect x="15" y="9" width="2" height="6" rx="1"/><rect x="4" y="10" width="3" height="4" rx="1"/><rect x="17" y="10" width="3" height="4" rx="1"/>
-        </svg>
-      </button>` : ''}
-    </div>` : '';
-
   const numSetsForRows = draftEx ? draftEx.sets.length : ex.sets;
   const setRows = Array.from({ length: numSetsForRows }, (_, i) => buildSetRow(ex, i, draftEx)).join('');
   const repLabel = ex.repsUnit === 'secs' ? 'sec' : ex.repsUnit === 'dist' ? '' : 'reps';
@@ -693,10 +670,10 @@ function buildExercisePanel(ex) {
           ${ex.muscle ? `<span class="tag">${ex.muscle}</span>` : ''}
           <button class="edit-reps-btn" data-action="edit-reps" data-ex-id="${ex.id}">${numSets} sets · ${ex.repsDisplay} ${repLabel}</button>
           <button class="ex-rest-btn" data-action="edit-rest" data-ex-id="${ex.id}">⏱ ${ex.restDuration ?? getSettings().restDuration}s</button>
+          ${hintHTML}
         </div>
         ${ex.notes ? `<div class="ex-note">${ex.notes}</div>` : ''}
       </div>
-      ${weightRow}
       <div class="sets-area">${setRows}</div>
       ${setControls}
     </div>`;
@@ -798,16 +775,11 @@ function logSet(exId, setIdx) {
     reps = parseInt(input?.value) || ex.repsMin;
   }
 
-  // Per-set weight (falls back to top-level weight input, then existing default)
   const setWInput = document.querySelector(`[data-set-weight-input="${exId}-${setIdx}"]`);
-  const topWInput = document.querySelector(`[data-weight-input="${exId}"]`);
   let weight = state.draft.exercises[exId].weight ?? 0;
   if (setWInput && setWInput.value !== '') {
     const v = parseFloat(setWInput.value);
     if (!isNaN(v)) weight = v;
-  } else if (topWInput && topWInput.value !== '') {
-    const v = parseFloat(topWInput.value);
-    if (!isNaN(v)) { weight = v; state.draft.exercises[exId].weight = v; }
   }
 
   state.draft.exercises[exId].sets[setIdx] = ex.trackWeight ? { reps, weight } : reps;
