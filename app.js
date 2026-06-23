@@ -788,6 +788,8 @@ function logSet(exId, setIdx) {
       if (!isNaN(v)) weight = v;
     }
   }
+  // Store weight as new default so subsequent sets pre-fill with same value
+  if (!weightLabel && weight > 0) state.draft.exercises[exId].weight = weight;
 
   state.draft.exercises[exId].sets[setIdx] = ex.trackWeight ? { reps, weight, weightLabel } : reps;
   saveDraft(state.draft);
@@ -1530,9 +1532,29 @@ function handleClick(e) {
     case 'discard-draft':
       clearDraft(); state.draft = null; renderHome();
       break;
-    case 'go-back':
-      navigate('workouts');
+    case 'go-back': {
+      const hasLogged = state.draft && Object.values(state.draft.exercises).some(ex => ex.sets.some(s => s !== null));
+      if (hasLogged) {
+        openSheet({
+          title: 'Save workout?',
+          html: `
+            <div style="color:var(--text-2);font-size:14px;margin-bottom:20px;line-height:1.7;">You have logged sets. Save to history or continue later?</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-primary-full" id="back-save-btn">Save & finish</button>
+              <button class="btn-ghost" style="border:1px solid var(--border);border-radius:var(--r-full);" id="back-later-btn">Continue later</button>
+              <button class="btn-ghost" style="color:var(--danger);" id="back-discard-btn">Discard workout</button>
+            </div>`,
+          onOpen: () => {
+            document.getElementById('back-save-btn').addEventListener('click', () => { closeSheet(); saveWorkout(); });
+            document.getElementById('back-later-btn').addEventListener('click', () => { closeSheet(); navigate('workouts'); });
+            document.getElementById('back-discard-btn').addEventListener('click', () => { closeSheet(); clearDraft(); state.draft = null; navigate('workouts'); });
+          },
+        });
+      } else {
+        navigate('workouts');
+      }
       break;
+    }
     case 'save-workout':
       saveWorkout();
       break;
