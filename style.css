@@ -916,6 +916,23 @@ html, body {
 .session-notes-input:focus { border-color: var(--accent); }
 .session-notes-input::placeholder { color: var(--text-3); }
 
+/* ── Set last-session hint ── */
+.set-last-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 2px 0 4px;
+  width: 100%;
+}
+
+/* ── Last session banner ── */
+.last-session-banner {
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+  padding: 0 0 8px;
+}
+
 /* ── History notes ── */
 .history-notes {
   font-size: 13px; color: var(--text-2); line-height: 1.6;

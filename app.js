@@ -225,6 +225,14 @@ function getLastSetReps(exerciseId, setIndex) {
   return s ? s.reps : null;
 }
 
+function getLastSetData(exerciseId, setIndex) {
+  const relevant = getLogs()
+    .filter(l => l.sets.some(s => s.exerciseId === exerciseId))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (!relevant.length) return null;
+  return relevant[0].sets.find(s => s.exerciseId === exerciseId && s.setIndex === setIndex) ?? null;
+}
+
 /* ============================================================
    Section 4: PR System
    ============================================================ */
@@ -607,9 +615,15 @@ function renderWorkout(dayNum) {
   document.getElementById('topbar-title').textContent = day.name;
   updateSaveButton();
 
+  const lastLog = getLastLogForDay(dayNum);
+  const bannerHtml = lastLog
+    ? `<div class="last-session-banner">Last session: ${formatDate(lastLog.date)}</div>`
+    : `<div class="last-session-banner">First session — good luck!</div>`;
+
   const mc = document.getElementById('main-content');
   mc.innerHTML = `
     <div style="padding:16px 0 0;">
+      ${bannerHtml}
       ${day.exercises.map(ex => buildExercisePanel(ex)).join('')}
       <div style="padding:0 16px 12px;">
         <textarea class="session-notes-input" placeholder="Session notes…" data-session-notes>${state.draft?.notes ?? ''}</textarea>
@@ -716,6 +730,15 @@ function buildSetRow(ex, i, draftEx) {
   const repsLabel     = ex.repsUnit === 'secs' ? 'sec' : 'reps';
   const unit          = getSettings().unit;
 
+  const lastSet = getLastSetData(ex.id, i);
+  let lastHint = '';
+  if (lastSet) {
+    const wLabel = lastSet.weightLabel === 'BW' ? 'BW' : (lastSet.weight ? `${lastSet.weight}${unit}` : null);
+    lastHint = ex.trackWeight && wLabel
+      ? `<span class="set-last-hint">Last: ${lastSet.reps} × ${wLabel}</span>`
+      : `<span class="set-last-hint">Last: ${lastSet.reps} ${repsLabel}</span>`;
+  }
+
   return `
     <div class="set-row" data-ex-id="${ex.id}" data-set-idx="${i}">
       <span class="set-num">Set ${i + 1}</span>
@@ -738,6 +761,7 @@ function buildSetRow(ex, i, draftEx) {
       <button class="log-btn" data-action="log-set" data-ex-id="${ex.id}" data-set-idx="${i}">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
+      ${lastHint}
     </div>`;
 }
 
