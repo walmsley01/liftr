@@ -1433,6 +1433,7 @@ function addExercise(vaultEx) {
   const wInput = panel.querySelector(`[data-weight-input="${newId}"]`);
   if (wInput) attachWeightInputListener(wInput, newId);
 
+  closeSheet();
   promptSavePermanent(
     `Add <strong style="color:var(--text)">${newEx.name}</strong> to this workout permanently for future sessions?`,
     saveProgramme
@@ -1477,6 +1478,7 @@ function swapExercise(oldExId, vaultEx) {
     attachWeightInputListener(document.querySelector(`[data-weight-input="${newId}"]`), newId);
   }
 
+  closeSheet();
   promptSavePermanent(
     `Keep <strong style="color:var(--text)">${newEx.name}</strong> as a permanent swap for future sessions?`,
     saveProgramme
@@ -1768,7 +1770,6 @@ function handleClick(e) {
       } else {
         addExercise(picked);
       }
-      closeSheet();
       break;
     }
     case 'use-plate-weight': {
