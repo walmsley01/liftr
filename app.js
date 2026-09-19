@@ -110,25 +110,46 @@ const EXERCISE_VAULT = [
 
 let PROGRAMME = [
   {
-    day: 1, name: 'Upper',
+    day: 1, name: 'Upper A',
     exercises: [
-      { id:'u1', name:'Pull-ups',                 sets:3, repsMin:6,  repsMax:10, repsDisplay:'6–10',   muscle:'Lats',                 notes:'Full ROM – assisted if needed to hit reps cleanly',       increment:0,   trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'u2', name:'Barbell bench press',      sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',   muscle:'Chest',                notes:'',                                                        increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'u3', name:'Barbell row',              sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',   muscle:'Mid back / rhomboids', notes:'Neutral grip – drive elbows back – pause at contraction', increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'u4', name:'Overhead press',           sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',   muscle:'Front delts',          notes:'Brace core – avoid excessive lean back',                  increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'u5', name:'Romanian deadlift',        sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12',  muscle:'Hamstrings / glutes',  notes:'Hinge at hips – soft knee – feel the hamstring stretch',  increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'u6', name:'Face pulls',               sets:2, repsMin:15, repsMax:20, repsDisplay:'15–20',  muscle:'Rear delts',           notes:'Rope to forehead – elbows high – key for shoulder health', increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua1', name:'Barbell bench press',    sets:4, repsMin:5,  repsMax:6,  repsDisplay:'5–6',      muscle:'Chest',                notes:'',                                                                           increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua2', name:'Pull-ups',               sets:4, repsMin:5,  repsMax:6,  repsDisplay:'5–6',      muscle:'Lats',                 notes:'Enter BW for bodyweight, a weight to add plates, or negative for assisted', increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua3', name:'Overhead press',         sets:3, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Front delts',          notes:'Brace core – avoid excessive lean back',                                     increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua4', name:'Barbell row',            sets:3, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Mid back / rhomboids', notes:'Drive elbows back – pause at contraction',                                   increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua5', name:'Tricep dips',            sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Triceps',              notes:'Enter BW for bodyweight or add a weight belt',                               increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ua6', name:'Barbell curl',           sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Biceps',               notes:'',                                                                           increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
     ]
   },
   {
-    day: 2, name: 'Lower',
+    day: 2, name: 'Lower A',
     exercises: [
-      { id:'lo1', name:'Back squat',              sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10',   muscle:'Quads / glutes',       notes:'Brace, chest up – depth to parallel or below',            increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
-      { id:'lo2', name:'Bulgarian split squat',   sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10 ea',muscle:'Quads / glutes',       notes:'Watch hip drop – keep pelvis level – very Scafell-specific', increment:2.5, trackWeight:true, perSide:true,  repsUnit:'reps' },
-      { id:'lo3', name:'Weighted step-ups',       sets:3, repsMin:10, repsMax:10, repsDisplay:'10 ea',  muscle:'Quads / glutes',       notes:'Control the descent – mimics uphill running directly',    increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
-      { id:'lo4', name:'Single-leg calf raise',   sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20 ea',muscle:'Calves',              notes:'Full ROM – protects Achilles on long climbs',             increment:0,   trackWeight:false, perSide:true,  repsUnit:'reps' },
-      { id:'lo5', name:'Incline dumbbell press',  sets:2, repsMin:10, repsMax:12, repsDisplay:'10–12',  muscle:'Upper chest',          notes:'Upper filler – keeps upper body ticking without leg fatigue', increment:2.5, trackWeight:true, perSide:false, repsUnit:'reps' },
-      { id:'lo6', name:'Dead bug',                sets:3, repsMin:10, repsMax:10, repsDisplay:'10 ea',  muscle:'Deep core',            notes:'Slow and controlled – no lower back arch – running stability', increment:0,  trackWeight:false, perSide:true,  repsUnit:'reps' },
+      { id:'la1', name:'Back squat',             sets:4, repsMin:5,  repsMax:6,  repsDisplay:'5–6',      muscle:'Quads / glutes',       notes:'Brace – chest up – depth to parallel or below',                             increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'la2', name:'Romanian deadlift',      sets:4, repsMin:8,  repsMax:10, repsDisplay:'8–10',     muscle:'Hamstrings / glutes',  notes:'Hinge at hips – soft knee – feel the hamstring stretch',                    increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'la3', name:'Bulgarian split squat',  sets:3, repsMin:8,  repsMax:10, repsDisplay:'8–10 ea',  muscle:'Quads / glutes',       notes:'Watch hip drop – keep pelvis level',                                        increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
+      { id:'la4', name:'Nordic curl',            sets:3, repsMin:6,  repsMax:8,  repsDisplay:'6–8',      muscle:'Hamstrings',           notes:'Hamstring resilience for running – slow eccentric',                         increment:0,   trackWeight:false, perSide:false, repsUnit:'reps' },
+      { id:'la5', name:'Single-leg calf raise',  sets:3, repsMin:12, repsMax:15, repsDisplay:'12–15 ea', muscle:'Calves',               notes:'Full ROM – use a step for extra range',                                      increment:0,   trackWeight:false, perSide:true,  repsUnit:'reps' },
+    ]
+  },
+  {
+    day: 3, name: 'Upper B',
+    exercises: [
+      { id:'ub1', name:'Incline dumbbell press', sets:4, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Upper chest',          notes:'',                                                                           increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ub2', name:'Cable row',              sets:4, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Mid back / rhomboids', notes:'Neutral grip – drive elbows back – pause at contraction',                   increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ub3', name:'DB shoulder press',      sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Front delts',          notes:'',                                                                           increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ub4', name:'Lat pulldown',           sets:3, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Lats',                 notes:'Full stretch at top – drive elbows to hips',                                increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ub5', name:'Lateral raise',          sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20',    muscle:'Side delts',           notes:'Lead with elbows – slight forward lean',                                    increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'ub6', name:'Face pulls',             sets:3, repsMin:15, repsMax:20, repsDisplay:'15–20',    muscle:'Rear delts',           notes:'Rope to forehead – elbows high – key for shoulder health',                  increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+    ]
+  },
+  {
+    day: 4, name: 'Lower B',
+    exercises: [
+      { id:'lb1', name:'Leg press',              sets:4, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Quads',                notes:'Cycling-specific – feet shoulder-width, mid-plate',                         increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'lb2', name:'Hip thrust',             sets:4, repsMin:10, repsMax:12, repsDisplay:'10–12',    muscle:'Glutes',               notes:'Drive through heel – full hip extension at top – big cycling power driver', increment:5,   trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'lb3', name:'Weighted step-ups',      sets:3, repsMin:10, repsMax:10, repsDisplay:'10 ea',    muscle:'Quads / glutes',       notes:'Control the descent – mimics running uphill',                               increment:2.5, trackWeight:true,  perSide:true,  repsUnit:'reps' },
+      { id:'lb4', name:'Leg curl',               sets:3, repsMin:12, repsMax:15, repsDisplay:'12–15',    muscle:'Hamstrings',           notes:'',                                                                           increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'lb5', name:'Leg extension',          sets:3, repsMin:12, repsMax:15, repsDisplay:'12–15',    muscle:'Quads',                notes:'Helps knee tracking on bike',                                               increment:2.5, trackWeight:true,  perSide:false, repsUnit:'reps' },
+      { id:'lb6', name:'Copenhagen plank',       sets:3, repsMin:20, repsMax:30, repsDisplay:'20–30s ea',muscle:'Adductors / core',     notes:'Start with bottom knee on ground if needed – reduces knee drift on bike',  increment:0,   trackWeight:false, perSide:true,  repsUnit:'secs' },
     ]
   },
 ];
